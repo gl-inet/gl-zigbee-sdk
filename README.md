@@ -59,32 +59,32 @@ $ make package/gl-zigbee-sdk/{clean,compile} V=s
 |
 |—— README							
 |
-|—— doc									# document
+|—— doc									               # document
 |	|—— Zbtool User Guide
 |	|—— GL-Zigbee SDK User Guide
 |
 |—— files
-|	|—— gl-zbtool.init					# configuration file
+|	|—— gl-zbtool.init				      	# configuration file
 |
 |—— src
-    | 	|—— components
-    |   |   |—— dev_mgr
-    |	    |—— log
-    |   	|—— thread
+    |—— components
+    |   |—— dev_mgr
+    |   |—— log
+    |  	|—— thread
     |
-    |—— daemon 							# zb daemon
+    |—— daemon 						         	# zb daemon
     |   |—— daemon
     |   |—— zbdriver
-    |       |——silabs					# silabs SDK
+    |       |——silabs				     	# silabs SDK
     |
-    |—— include                    		# header file 
+    |—— include               	# header file 
     |
-    |—— lib                        		# zb api lib
+    |—— lib                  		# zb api lib
     |   |—— libglzbapi.h
     |   |—— libglzbapi.c
     |
-    |—— project                			# user application file
-    |   |—— demo.c	     				# demo file
+    |—— project             			# user application file
+    |   |—— demo.c	        				# demo file
     |
     |—— tool                     	
     |   |—— cli.c						# debug tool – zbtool
