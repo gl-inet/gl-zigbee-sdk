@@ -695,7 +695,7 @@ GL_RET glzb_get_nwk_status(glzb_nwk_status_para_s* status)
 
 GL_RET glzb_create_nwk(uint16_t pan_id, uint8_t channel, uint8_t tx_power)
 {
-	if((channel < 11) || (channel > 25))
+	if((channel < 11) || (channel > 26))
 	{
 		return GL_PARAM_ERR;
 	}
