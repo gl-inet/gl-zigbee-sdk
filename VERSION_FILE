@@ -1,3 +1,12 @@
+Ver: 2.1.1
+Build: 2020.12.04
+Changes:
+	1. Add "glzb_init_dev_tab()", "glzb_free_dev_tab()" API
+
+
+
+---------------------------------------------------------------------------------
 Ver: 2.1.0
 Build: 2020.11.30
-
+Changes:
+	1. First version

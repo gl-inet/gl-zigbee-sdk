@@ -24,7 +24,7 @@
 #include "glzb_base.h"
 #include "log/infra_log.h"
 
-#define SDK_VERSION						"[Ver: 2.1.0 Build: 2020.11.30]"
+#define SDK_VERSION						"[Ver: 2.1.1 Build: 2020.12.04]"
 
 static struct ubus_subscriber msg_subscriber;
 
@@ -765,14 +765,6 @@ GL_RET glzb_leave_nwk(void)
 	return ret;
 }
 
-
-
-
-
-
-
-
-
 GL_RET glzb_allow_dev_join(int limit_time)
 {
 	if((limit_time < 0) || (limit_time > 256))
@@ -848,6 +840,29 @@ GL_RET glzb_delete_dev(char* mac, uint16_t short_id)
 	free(str);
 
 	return ret;
+}
+
+glzb_dev_table_s* glzb_init_dev_tab(void)
+{
+	glzb_dev_table_s *table = (glzb_dev_table_s*)malloc(sizeof(glzb_dev_table_s));
+	if(!table)
+	{
+		return NULL;
+	}
+	table->child_num = 0;
+	table->child_table_header = (glzb_child_tab_s*)malloc(sizeof(glzb_child_tab_s));
+	if(!table->child_table_header)
+	{
+		return NULL;
+	}
+	table->neighbor_num = 0;
+	table->neighbor_table_header = (glzb_neighbor_tab_s*)malloc(sizeof(glzb_neighbor_tab_s));
+	if(!table->neighbor_table_header)
+	{
+		return NULL;
+	}
+
+	return table;
 }
 
 GL_RET glzb_get_dev_tab(glzb_dev_table_s *table)
@@ -984,6 +999,70 @@ GL_RET glzb_get_dev_tab(glzb_dev_table_s *table)
 
 	json_object_put(root);
 	free(str);
+
+	return GL_SUCCESS;
+}
+
+GL_RET glzb_free_dev_tab(glzb_dev_table_s *table)
+{
+	if(!table)
+	{
+		return GL_PARAM_ERR;
+	}
+
+	int now_n = 0;
+
+	if(table->child_table_header)
+	{
+		glzb_child_tab_s* now_chl_p = NULL;
+		glzb_child_tab_s* next_chl_p = NULL;
+		if(table->child_num > 0)
+		{
+			while(now_n < table->child_num)
+			{
+				now_chl_p = table->child_table_header->next;
+				if(!now_chl_p)
+				{
+					break;
+				}
+				next_chl_p = now_chl_p->next;
+
+				table->child_table_header->next = next_chl_p;
+				free(now_chl_p);
+				now_n++;
+			}
+		}
+		free(table->child_table_header);
+		table->child_table_header = NULL;
+	}
+
+	now_n = 0;
+	if(table->neighbor_table_header)
+	{
+		glzb_neighbor_tab_s* now_ngb_p = NULL;
+		glzb_neighbor_tab_s* next_ngb_p = NULL;
+		if(table->neighbor_num > 0)
+		{
+			while(now_n < table->neighbor_num)
+			{
+				now_ngb_p = table->neighbor_table_header->next;
+				if(!now_ngb_p)
+				{
+					break;
+				}
+				next_ngb_p = now_ngb_p->next;
+
+				table->neighbor_table_header->next = next_ngb_p;
+				free(now_ngb_p);
+				now_n++;
+			}
+		}
+		free(table->neighbor_table_header);
+		table->neighbor_table_header = NULL;
+	}
+
+	free(table);
+	table = NULL;
 
 	return GL_SUCCESS;
 }

@@ -663,30 +663,31 @@ int cmd_leave_nwk(int argc, char** argv)
 	return 0;
 }
 
-
-
 int cmd_get_dev_list(int argc, char** argv)
 {
-	glzb_dev_table_s table;
-	table.child_table_header = (glzb_child_tab_s*)malloc(sizeof(glzb_child_tab_s));
-	table.neighbor_table_header = (glzb_neighbor_tab_s*)malloc(sizeof(glzb_neighbor_tab_s));
-
-	GL_RET ret = glzb_get_dev_tab(&table);
-	if(ret != GL_SUCCESS)
+	glzb_dev_table_s *table = glzb_init_dev_tab();
+	if(!table)
 	{
 		return -1;
 	}
 
+	GL_RET ret = glzb_get_dev_tab(table);
+	if(ret != GL_SUCCESS)
+	{
+		glzb_free_dev_tab(table);
+		return -1;
+	}
+
 	int i, j;
-	glzb_child_tab_s* now = table.child_table_header->next;
+	glzb_child_tab_s* now = table->child_table_header->next;
 	glzb_child_tab_s* tmp_node;
 	printf("{\n");
-	printf("  Child Table NUM: %d\n", table.child_num);
-	if(table.child_num > 0)
+	printf("  Child Table NUM: %d\n", table->child_num);
+	if(table->child_num > 0)
 	{
 		printf("  Child Table:\n");
 		printf("  {\n");
-		for(i = 0; i < table.child_num; i++)
+		for(i = 0; i < table->child_num; i++)
 		{
 			printf("    Node%d:{\n", i+1);
 			printf("             Type: ");
@@ -719,30 +720,18 @@ int cmd_get_dev_list(int argc, char** argv)
 			now = tmp_node->next;
 		}
 		printf("  }\n");
-
-		while(table.child_table_header->next)
-		{
-			now = table.child_table_header->next;
-			tmp_node = now->next;
-			table.child_table_header->next = tmp_node;
-
-			free(now);
-			now = NULL;
-		}
 	}
-	free(table.child_table_header);
-	table.child_table_header = NULL;
 
 	printf("\n");
-	glzb_neighbor_tab_s* now_nei = table.neighbor_table_header->next;
+	glzb_neighbor_tab_s* now_nei = table->neighbor_table_header->next;
 	glzb_neighbor_tab_s* tmp_node_nei;
-	printf("  Neighbor Table NUM: %d\n", table.neighbor_num);
-	if(table.neighbor_num > 0)
+	printf("  Neighbor Table NUM: %d\n", table->neighbor_num);
+	if(table->neighbor_num > 0)
 	{
 		printf("  Neighbor Table:\n");
 		printf("  {\n");
 
-		for(j = 0; j < table.neighbor_num; j++)
+		for(j = 0; j < table->neighbor_num; j++)
 		{
 			printf("    Node%d:{\n", j+1);
 			printf("             Short ID: 0x%04x\n", now_nei->short_id);
@@ -757,23 +746,11 @@ int cmd_get_dev_list(int argc, char** argv)
 			now_nei = tmp_node_nei->next;
 		}
 		printf("  }\n");
-
-		while(table.neighbor_table_header->next)
-		{
-			now_nei = table.neighbor_table_header->next;
-			tmp_node_nei = now_nei->next;
-			table.neighbor_table_header->next = tmp_node_nei;
-
-			free(now_nei);
-			now_nei = NULL;
-		}
-		free(table.neighbor_table_header);
-		table.neighbor_table_header = NULL;
-
-
 	}
 
 	printf("}\n");
+
+	glzb_free_dev_tab(table);
 	return 0;
 }
 

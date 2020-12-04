@@ -52,7 +52,11 @@ GL_RET glzb_allow_dev_join(int limit_time);
 
 GL_RET glzb_delete_dev(char* mac, uint16_t short_id);
 
+glzb_dev_table_s* glzb_init_dev_tab(void);
+
 GL_RET glzb_get_dev_tab(glzb_dev_table_s *table);
+
+GL_RET glzb_free_dev_tab(glzb_dev_table_s *table);
 
 /* 
  * zcl cmd
