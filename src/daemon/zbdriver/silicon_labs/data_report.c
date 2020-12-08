@@ -52,9 +52,9 @@ bool Recv_ClusterCommandParse(EmberAfClusterCommand *cmd)
 	uint8_t cmd_type;
 	if(cmd->clusterSpecific)
 	{
-		uint8_t cmd_type = 0x01;
+		cmd_type = 0x01;
 	}else{
-		uint8_t cmd_type = 0x00;
+		cmd_type = 0x00;
 	}
 	json_object_object_add(obj,"cmd_type",json_object_new_int(cmd_type));
 
