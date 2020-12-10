@@ -48,6 +48,13 @@ $ cd sdk/qsdk53/ipq806x/
 $ make package/gl-zigbee-sdk/{clean,compile} V=s
 ```
 
+If there is a problem with missing dependent libraries during compilation, follow these steps
+
+```
+$ ./scripts/feeds update -f
+$ ./scripts/feeds install <dependency_name>
+```
+
 # Directory Structure
 
 ```

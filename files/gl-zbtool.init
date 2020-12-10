@@ -31,12 +31,25 @@ start_service() {
     uci set zigbee.spi_reset_io='43'
 	uci set zigbee.spi_wake_io='48'
 	uci set zigbee.hal='spi'
-#   elif [ $model == x750 ]; then
-#     uci set zigbee.x750='zigbeeserial'
-#     uci set zigbee.port='/dev/ttyS0'
-#     uci set zigbee.baudrate=115200
-#     uci set zigbee.flowcontrol=0
-# 	uci set zigbee.hal='uart'
+  elif [ $model == x750 ]; then
+	echo 1 > /sys/class/gpio/export
+	echo 1 > /sys/class/gpio/gpio1/value
+    uci set zigbee.x750='zigbeeserial'
+    uci set zigbee.port='/dev/ttyS0'
+    uci set zigbee.baudrate='115200'
+    uci set zigbee.flow_control='n'
+	uci set zigbee.reset_mothod='soft'
+	uci set zigbee.hal='uart'
+  elif [ $model == mt300n-v2 ]; then
+	echo 5 > /sys/class/gpio/export
+	echo out > /sys/class/gpio/gpio5/direction
+	echo 1 > /sys/class/gpio/gpio5/value
+    uci set zigbee.x750='zigbeeserial'
+    uci set zigbee.port='/dev/ttyS1'
+    uci set zigbee.baudrate='115200'
+    uci set zigbee.flow_control='n'
+	uci set zigbee.reset_mothod='soft'
+	uci set zigbee.hal='uart'
   fi
   uci commit zigbee
 

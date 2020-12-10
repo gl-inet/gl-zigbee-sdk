@@ -274,6 +274,7 @@ EzspStatus ezspSetupSerialPort(int* serialPortFdReturn,
     tios.c_cc[VMIN] = 1;
     tios.c_cc[VTIME] = 0;
 
+	memset(checkTios.c_cc, _POSIX_VDISABLE, NCCS);
     tcsetattr(*serialPortFdReturn, TCSAFLUSH, &tios);  // set EZSP serial port options
     tcgetattr(*serialPortFdReturn, &checkTios);      // and read back the result
 

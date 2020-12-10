@@ -38,6 +38,8 @@ COMPONENTS_FILE = $(foreach dir,$(COMPONENTS_DIRS),$(wildcard $(dir)/*.c))
 $(info components_files = $(COMPONENTS_FILE))
 
 MODULE = SILICON_LABS
+MODULE_INTERFACE = SPI
+# MODULE_INTERFACE = UART
 MODELUE_INCLUD_PATH ?= 
 
 ifeq ($(MODULE),SILICON_LABS)
@@ -68,10 +70,14 @@ DEFINES += \
 	-DEMBER_AF_API_NEIGHBOR_HEADER=\"./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/developer/sdks/gecko_sdk_suite/v2.7/protocol/zigbee/stack/include/stack-info.h\" \
 	-DEMBER_STACK_ZIGBEE \
 	-DMBEDTLS_CONFIG_FILE=\"./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/code/1/2/Z3GatewayHost-768/mbedtls-config-generated.h\" \
-	-DEZSP_SPI \
-	-DSILICON_LABS_MODULE \
+	-DSILICON_LABS_MODULE
+	
 
-
+ifeq ($(MODULE_INTERFACE),SPI)
+  DEFINES += -DEZSP_SPI 
+else 
+  DEFINES += -DEZSP_ASH 
+endif
 
 INCLUD_PATH += \
 	-I./daemon/zbdriver/silicon_labs/ \
@@ -133,10 +139,6 @@ ZBDRIVER_FILE = \
 	./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/developer/sdks/gecko_sdk_suite/v2.7/protocol/zigbee/app/ezsp-host/ezsp-host-io.c \
 	./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/developer/sdks/gecko_sdk_suite/v2.7/protocol/zigbee/app/ezsp-host/ezsp-host-queues.c \
 	./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/developer/sdks/gecko_sdk_suite/v2.7/protocol/zigbee/app/ezsp-host/ezsp-host-ui.c \
-	./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/developer/sdks/gecko_sdk_suite/v2.7/protocol/zigbee/app/util/ezsp/serial-interface-spi.c \
-	./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/developer/sdks/gecko_sdk_suite/v2.7/platform/base/hal/micro/unix/host/spi-protocol-linux.c \
-	./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/developer/sdks/gecko_sdk_suite/v2.7/protocol/zigbee/app/ezsp-host/spi/spi-host-ui.c \
-	./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/developer/sdks/gecko_sdk_suite/v2.7/protocol/zigbee/app/ezsp-host/spi/spi-host.c \
 	./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/developer/sdks/gecko_sdk_suite/v2.7/protocol/zigbee/app/framework/plugin-host/file-descriptor-dispatch/file-descriptor-dispatch.c \
 	./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/developer/sdks/gecko_sdk_suite/v2.7/protocol/zigbee/app/framework/plugin/form-and-join/form-and-join-afv2.c \
 	./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/developer/sdks/gecko_sdk_suite/v2.7/protocol/zigbee/app/util/common/form-and-join.c \
@@ -279,6 +281,20 @@ ZBDRIVER_FILE = \
 	./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/developer/sdks/gecko_sdk_suite/v2.7/protocol/zigbee/app/framework/plugin/zll-commissioning-client/zll-commissioning-client.c \
 	./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/developer/sdks/gecko_sdk_suite/v2.7/protocol/zigbee/app/framework/plugin/zll-commissioning-common/zll-commissioning-common.c \
 	./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/developer/sdks/gecko_sdk_suite/v2.7/protocol/zigbee/app/framework/plugin/zll-commissioning-server/zll-commissioning-server.c \
+
+ifeq ($(MODULE_INTERFACE),SPI)
+ZBDRIVER_FILE += \
+	./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/developer/sdks/gecko_sdk_suite/v2.7/protocol/zigbee/app/util/ezsp/serial-interface-spi.c \
+	./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/developer/sdks/gecko_sdk_suite/v2.7/platform/base/hal/micro/unix/host/spi-protocol-linux.c \
+	./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/developer/sdks/gecko_sdk_suite/v2.7/protocol/zigbee/app/ezsp-host/spi/spi-host-ui.c \
+	./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/developer/sdks/gecko_sdk_suite/v2.7/protocol/zigbee/app/ezsp-host/spi/spi-host.c 
+else 
+ZBDRIVER_FILE += \
+	./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/developer/sdks/gecko_sdk_suite/v2.7/protocol/zigbee/app/util/ezsp/serial-interface-uart.c \
+	./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/developer/sdks/gecko_sdk_suite/v2.7/protocol/zigbee/app/ezsp-host/ash/ash-host-ui.c \
+	./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/developer/sdks/gecko_sdk_suite/v2.7/protocol/zigbee/app/ezsp-host/ash/ash-host.c \
+	./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/developer/sdks/gecko_sdk_suite/v2.7/platform/base/hal/micro/generic/ash-common.c 
+endif
 
 
 else

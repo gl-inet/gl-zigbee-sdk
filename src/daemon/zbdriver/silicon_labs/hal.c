@@ -24,32 +24,32 @@
 #include <stdbool.h>
 
 #include "hal.h"
-#include "platform/base/hal/micro/unix/host/spi-protocol-common.h"
 #include "log/infra_log.h"
 
-unsigned char ENDIAN;
+#ifdef SILICON_LABS_MODULE
+	#include "app/framework/include/af.h"
+	#if defined(EZSP_SPI)
+		#include "platform/base/hal/micro/unix/host/spi-protocol-common.h"
+		#define serial_init() silabs_spi_init()
+	#elif defined(EZSP_ASH)
+		#include "app/ezsp-host/ash/ash-host.h"
+		#define serial_init() silabs_uart_init()
+	#endif
+
+#else
+	#define serial_init()
+#endif
+
 
 struct uci_context* guci2_init();
 int guci2_free(struct uci_context* ctx);
 int guci2_get(struct uci_context* ctx, const char* section_or_key, char value[]);
 
-
-static int check_endian(void)
+#ifdef SILICON_LABS_MODULE 
+#ifdef EZSP_SPI
+static int silabs_spi_init(void)
 {
-  int x = 1;
-  if(*((char *)&x) == 1) ENDIAN = 0;   //little endian
-  else ENDIAN = 1;   //big endian
-  return 0;
-}
-
-static int serial_init(void)
-{
-    char uart_port[64] = {0};
-    uint32_t baud_rate;
-    uint32_t flowcontrol;
-
     struct uci_context* ctx = guci2_init();
-    char value[64] = {0};
 
 	/*check hal*/
 	char hal[10];
@@ -61,38 +61,8 @@ static int serial_init(void)
 
 	if(0 == strcmp(hal, "uart"))
 	{
-		log_err("uart not support!\n");
-		// /*Init port*/
-		// if(guci2_get(ctx,"zigbee.port",value) < 0)
-		// {
-		// 	log_err("zigbee: serial config missing.\n");
-		// 	return -1;
-		// }
-		// strcpy(uart_port,value);
-		// memset(value,0,64);
-
-		// /*Init baudrate*/
-		// if(guci2_get(ctx,"zigbee.baudrate",value) < 0)
-		// {
-		// 	log_err("zigbee: serial config missing.\n");
-		// 	return -1;
-		// }
-		// baud_rate = atoi(value);
-		// memset(value,0,64);
-
-		// /*Init flowcontrol*/
-		// if(guci2_get(ctx,"zigbee.flowcontrol",value) < 0)
-		// {
-		// 	log_err("zigbee: serial config missing.\n");
-		// 	return -1;
-		// }
-		// flowcontrol = atoi(value);
-		// memset(value,0,64);
-
-		// guci2_free(ctx);
-
-		// // return uartOpen((int8_t*)uart_port, baud_rate, flowcontrol, 100);
-
+		log_err("zigbee serial ERROR!!! This is a spi zigbee packet");
+		exit(0);
 	}else if(0 == strcmp(hal, "spi")){
 		/*init spi device*/
 		if(guci2_get(ctx,"zigbee.spi_device",spiDevArg) < 0)
@@ -128,36 +98,119 @@ static int serial_init(void)
 			log_err("zigbee: serial config missing.\n");
 			return -1;
 		}
-
 	}
 
 	return 0;
-
-
 }
 
-int hal_init(void)
+#elif defined (EZSP_ASH)
+static int silabs_uart_init(void)
 {
-    // check_endian();
-    // int serialFd = serial_init();
-    // if( serialFd < 0 )
-    // {
-    //     log_err("Hal initilized failed.\n");
-    //     exit(1);
-    // }
-    // return serialFd;
-	// char name[6] = {0};
-	// strcpy(name, "./log");
-	// halNcpEnableLogging(name);
-	serial_init();
+    struct uci_context* ctx = guci2_init();
 
-	printf("serial_init\n");
+	/*check hal*/
+	char hal[10];
+    if(guci2_get(ctx,"zigbee.hal",hal) < 0)
+    {
+        log_err("zigbee: serial config missing.\n");
+        return -1;
+    }
+
+	if(0 == strcmp(hal, "uart"))
+	{
+		char uart_port[40] = {0};
+		char baud_rate[10] = {0};
+		char flow_control[10] = {0};
+		char reset_mothod[10] = {0};
+
+		/*Init port*/
+		if(guci2_get(ctx,"zigbee.port",uart_port) < 0)
+		{
+			log_err("zigbee: serial config missing.\n");
+			return -1;
+		}		
+		strcpy(ashHostConfig.serialPort,uart_port);
+		printf("serialPort: %s\n", ashHostConfig.serialPort);
+
+		/*Init baudrate*/
+		if(guci2_get(ctx,"zigbee.baudrate",baud_rate) < 0)
+		{
+			log_err("zigbee: serial config missing.\n");
+			return -1;
+		}
+		ashWriteConfig(baudRate, atoi(baud_rate));
+		printf("baudRate: %d\n", ashHostConfig.baudRate);
+
+		/*Init flow control*/
+		if(guci2_get(ctx,"zigbee.flow_control",flow_control) < 0)
+		{
+			log_err("zigbee: serial config missing.\n");
+			return -1;
+		}
+		if(0 == strcmp(flow_control, "n"))
+		{
+			ashWriteConfig(rtsCts, false);
+			printf("rtsCts: no\n");
+		}else if(0 == strcmp(flow_control, "y")){
+			ashWriteConfig(rtsCts, true);
+		}else{
+			log_err("zigbee: serial flow control config error.\n");
+		}
+
+		/*Init reset method*/
+		if(guci2_get(ctx,"zigbee.reset_mothod",reset_mothod) < 0)
+		{
+			log_err("zigbee: serial config missing.\n");
+			return -1;
+		}
+		if(0 == strcmp(reset_mothod, "soft"))
+		{
+			ashWriteConfig(resetMethod, ASH_RESET_METHOD_RST);
+		}else{
+			log_err("zigbee: serial reset mothod config error.\n");
+		}
+
+		guci2_free(ctx);
+
+	}else if(0 == strcmp(hal, "spi")){
+		log_err("zigbee serial ERROR!!! This is a uart zigbee packet");
+		exit(0);
+	}
+
 	return 0;
 }
 
+#endif
+
+#endif //SILICON_LABS_MODULE 
+
+
+
+int hal_init(void)
+{
+	serial_init();
+
+	return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// UCI func
 struct uci_context* guci2_init()
 {
-	
 	struct uci_context* ctx = uci_alloc_context();
 		
 	return ctx;

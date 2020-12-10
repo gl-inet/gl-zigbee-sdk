@@ -24,7 +24,7 @@
 #include "glzb_base.h"
 #include "log/infra_log.h"
 
-#define SDK_VERSION						"[Ver: 2.1.2 Build: 2020.12.08]"
+#define SDK_VERSION						"[Ver: 2.2.0 Build: 2020.12.10]"
 
 static struct ubus_subscriber msg_subscriber;
 
