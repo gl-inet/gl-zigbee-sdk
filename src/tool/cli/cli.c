@@ -15,6 +15,7 @@
  ******************************************************************************/
 #include <stdio.h>
 #include <getopt.h>
+#include <time.h>
 
 #include "glzb_type.h"
 #include "libglzbapi.h"
@@ -31,7 +32,12 @@ static void str2uint16_array(char* str, uint16_t* array, int len);
 
 static void print_dev_manage(glzb_desc_s* dev)
 {
-	printf("new device manage message!\n");
+	time_t timep;
+	time(&timep);
+	struct tm *p;
+	p = gmtime(&timep);
+
+	printf("/****************** dev manage msg ******************/\n");
 	printf("{\n");
 	printf("  new device short ID: %04x\n", dev->short_id);
 	printf("  new device eui64: %s\n", dev->eui64);
@@ -75,13 +81,23 @@ static void print_dev_manage(glzb_desc_s* dev)
 			break;
 	}
 
+	printf("  time: %02d:%02d:%02d\n", 8+p->tm_hour, p->tm_min, p->tm_sec);
+
 	printf("}\n");
+	printf("/****************************************************/\n");
+	printf("\n");
+
 	return ;
 }
 
 static void print_zcl_report(glzb_zcl_repo_s* zcl_p)
 {
-	printf("zcl_report!\n");
+	time_t timep;
+	time(&timep);
+	struct tm *p;
+	p = gmtime(&timep);
+
+	printf("/******************** zcl_report ********************/\n");
 	printf("{\n");
 	printf("  short ID: %04x\n", zcl_p->short_id);
 	// printf("  device mac: %s\n", zcl_p->mac);
@@ -93,7 +109,10 @@ static void print_zcl_report(glzb_zcl_repo_s* zcl_p)
 	printf("  cmd ID: %02x\n", zcl_p->cmd_id);
 	printf("  message length: %d\n", zcl_p->msg_length);	
 	printf("  message: %s\n", zcl_p->message);
+	printf("  time: %02d:%02d:%02d\n", 8 + p->tm_hour, p->tm_min, p->tm_sec);
 	printf("}\n");
+	printf("/****************************************************/\n");
+	printf("\n");
 
 	free(zcl_p->message);
 	zcl_p->message = NULL;
@@ -103,15 +122,23 @@ static void print_zcl_report(glzb_zcl_repo_s* zcl_p)
 
 static void print_zdo_report(glzb_zdo_repo_s* zdo_p)
 {
-	printf("zdo_report!\n");
+	time_t timep;
+	time(&timep);
+	struct tm *p;
+	p = gmtime(&timep);
+
+	printf("/******************** zdo_report ********************/\n");
 	printf("{\n");
 	printf("  short ID: %04x\n", zdo_p->short_id);
 	printf("  profile ID: %04x\n", zdo_p->profile_id);
 	printf("  cluster ID: %04x\n", zdo_p->cluster_id);
 	printf("  message length: %d\n", zdo_p->msg_length);	
 	printf("  message: %s\n", zdo_p->message);
+	printf("  time: %02d:%02d:%02d\n", 8 + p->tm_hour, p->tm_min, p->tm_sec);
 	printf("}\n");
-
+	printf("/****************************************************/\n");
+	printf("\n");
+	
 	free(zdo_p->message);
 	zdo_p->message = NULL;
 
@@ -127,8 +154,14 @@ int cmd_listen(int argc, char** argv)
 	user_cbs.z3_zdo_report_cb = print_zdo_report;
 	glzb_register_cb(&user_cbs);
 
-	glzb_subscribe();
+	int timeout = 0;
+	if(argc == 3)
+	{
+		timeout = atoi(argv[2]);
+	}
+	glzb_subscribe(timeout);
 
+	return 0;
 }
 
 int cmd_on_off(int argc, char** argv)
@@ -1169,7 +1202,6 @@ int main(int argc, char* argv[])
 		i++;
 	}
 
-	glzb_free();
 	return 0;
 }
 

@@ -1,3 +1,13 @@
+Ver: 2.2.1
+Build: 2020.12.18
+Changes:
+	1. Fix bug: "glzb_subscribe()" causes memory leak
+	2. "glzb_subscribe()" add parameter -> "timeout"
+	3. Discard "glzb_unsubscribe()" and "glzb_free()", temporarily not in use
+
+
+
+---------------------------------------------------------------------------------
 Ver: 2.2.0
 Build: 2020.12.10
 Changes:

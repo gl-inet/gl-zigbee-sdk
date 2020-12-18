@@ -24,11 +24,13 @@
 #include "glzb_base.h"
 #include "log/infra_log.h"
 
-#define SDK_VERSION						"[Ver: 2.2.0 Build: 2020.12.10]"
+#define SDK_VERSION						"[Ver: 2.2.1 Build: 2020.12.18]"
 
 static struct ubus_subscriber msg_subscriber;
 
 static glzb_cbs_s zb_msg_cb;
+
+struct ubus_context* subscriber_ctx = NULL;
 
 static int listen_timeout;
 
@@ -69,7 +71,6 @@ static int uint8array2str(uint8_t* array, char* str, int len);
 /* C/C++ program interface */
 GL_RET glzb_init(void)
 {
-	uloop_init();
 	init_zb_default_cb();
 	return GL_SUCCESS;
 }
@@ -443,56 +444,19 @@ fc_end:
 
 
 
-GL_RET glzb_free(void)
-{
-	// ubus_free(ctx);
-	uloop_done();
-	return GL_SUCCESS;
-}
-
-GL_RET glzb_subscribe(void)
+GL_RET glzb_subscribe(int timeout)
 {
 	int ret;
 	msg_subscriber.cb = sub_handler;
 	msg_subscriber.remove_cb = sub_remove_callback;
 
+	listen_timeout = timeout;
 	return GL_UBUS_SUBSCRIBE("zigbee", &msg_subscriber);
 }
 
 GL_RET glzb_unsubscribe(void)
 {
-
-    int ret;
-    unsigned int id = 0;
-    struct ubus_context* ctx = NULL;
-
-    listen_timeout = 1;
-
-    ctx = ubus_connect(NULL);
-    if (!ctx) {
-        printf("ubus_connect failed.\n");
-        return GL_UBUS_CONNECT_ERR;
-    }
-
-    if (ubus_lookup_id(ctx, "zigbee", &id)) {
-        printf("ubus_lookup_id failed.\n");
-        if (ctx) {
-            ubus_free(ctx);
-        }
-        return GL_UBUS_LOOKUP_ERR;
-    }
-
-    if (ubus_unsubscribe(ctx, &msg_subscriber, id)) {
-        printf("ubus_unsubscribe failed.\n");
-        if (ctx) {
-            ubus_free(ctx);
-        }
-        return GL_UBUS_SUBSCRIBE_ERR;
-    }
-
-    ubus_free(ctx);
-
-	return GL_SUCCESS;
+	return GL_RESERVED_ERR;
 }
 
 GL_RET glzb_register_cb(glzb_cbs_s *cb)
@@ -505,19 +469,19 @@ GL_RET glzb_register_cb(glzb_cbs_s *cb)
 	if(NULL != cb->z3_dev_manage_cb)
 	{
 		zb_msg_cb.z3_dev_manage_cb = cb->z3_dev_manage_cb;
-		// printf("glzb_register_cb: z3_dev_join_cb\n");
+		log_debug("glzb_register_cb: z3_dev_join_cb\n");
 	}
 
 	if(NULL != cb->z3_zcl_report_cb)
 	{
 		zb_msg_cb.z3_zcl_report_cb = cb->z3_zcl_report_cb;
-		// printf("glzb_register_cb: z3_zcl_report_cb\n");
+		log_debug("glzb_register_cb: z3_zcl_report_cb\n");
 	}
 
 	if(NULL != cb->z3_zdo_report_cb)
 	{
 		zb_msg_cb.z3_zdo_report_cb = cb->z3_zdo_report_cb;
-		// printf("glzb_register_cb: z3_zdo_report_cb\n");
+		log_debug("glzb_register_cb: z3_zdo_report_cb\n");
 	}
 
 	return GL_SUCCESS;
@@ -525,11 +489,12 @@ GL_RET glzb_register_cb(glzb_cbs_s *cb)
 
 static void gl_zb_defult_cmd_cb(struct ubus_request* req, int type, struct blob_attr* msg)
 {
-	// printf("gl_zb_defult_cmd_cb\n");
     char** str = (char**)req->priv;
 
     if (msg && str)
+	{
         *str = blobmsg_format_json_indent(msg, true, 0);
+	}
 }
 
 GL_RET glzb_get_module_msg(glzb_module_ver_s* status)
@@ -1551,18 +1516,47 @@ static void ubus_cli_listen_timeout(struct uloop_timeout* timeout)
     struct cli_listen_data* data = container_of(timeout, struct cli_listen_data, timeout);
     data->timed_out = true;
     uloop_end();
+	listen_timeout = 0;
 }
 
 static void do_listen(struct ubus_context* ctx, struct cli_listen_data* data)
 {
     memset(data, 0, sizeof(*data));
     data->timeout.cb = ubus_cli_listen_timeout;
+
     uloop_init();
     ubus_add_uloop(ctx);
     if (listen_timeout)
+	{
         uloop_timeout_set(&data->timeout, listen_timeout * 1000);
+	}
+
     uloop_run();
     uloop_done();
+	log_debug("ULOOP TIMEOUT!\n");
+
+    unsigned int id = 0;
+
+    if (0 != ubus_lookup_id(ctx, "zigbee", &id)) 
+	{
+        log_err("ubus_lookup_id failed.\n");
+        if (ctx) {
+            ubus_free(ctx);
+        }
+        return GL_UBUS_LOOKUP_ERR;
+    }
+
+	int ret = ubus_unsubscribe(ctx, &msg_subscriber, id);
+    if (ret != 0) 
+	{
+        log_err("ubus_unsubscribe failed. error code: %d\n", ret);
+        if (ctx) {
+            ubus_free(ctx);
+        }
+        return GL_UBUS_SUBSCRIBE_ERR;
+    }
+
+	ubus_free(ctx);
 }
 
 GL_RET GL_UBUS_SUBSCRIBE(const char* path, struct ubus_subscriber* callback)

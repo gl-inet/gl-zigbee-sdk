@@ -27,11 +27,9 @@
  */
 GL_RET glzb_init(void);
 
-GL_RET glzb_free(void);
-
 GL_RET glzb_get_sdk_ver(char* version);
 
-GL_RET glzb_subscribe(void);
+GL_RET glzb_subscribe(int timeout);
 
 GL_RET glzb_unsubscribe(void);
 

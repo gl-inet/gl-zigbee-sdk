@@ -33,6 +33,8 @@ enum {
 	GL_UNKNOW_ERR									= 0x0001,
 	// Parameter error
 	GL_PARAM_ERR									= 0x0002,
+	// Reserved unused
+	GL_RESERVED_ERR									= 0x0003,
 
 	/* 
 	 * UBUS ERROR 

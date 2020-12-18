@@ -103,7 +103,5 @@ int main()
 
 	printf("}\n");
 
-	glzb_free();
-
 	return 0;
 }
