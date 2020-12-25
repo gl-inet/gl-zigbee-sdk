@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <getopt.h>
 #include <time.h>
+#include <limits.h>
 
 #include "glzb_type.h"
 #include "libglzbapi.h"
@@ -159,7 +160,13 @@ int cmd_listen(int argc, char** argv)
 	{
 		timeout = atoi(argv[2]);
 	}
-	glzb_subscribe(timeout);
+	if((timeout * 1000) < INT_MAX)
+	{
+		glzb_subscribe(timeout * 1000);
+	}else{
+		printf("argument error!\n");
+		return -1;
+	}
 
 	return 0;
 }

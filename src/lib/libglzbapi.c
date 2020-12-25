@@ -24,7 +24,7 @@
 #include "glzb_base.h"
 #include "log/infra_log.h"
 
-#define SDK_VERSION						"[Ver: 2.2.1 Build: 2020.12.18]"
+#define SDK_VERSION						"[Ver: 2.2.2 Build: 2020.12.25]"
 
 static struct ubus_subscriber msg_subscriber;
 
@@ -32,7 +32,7 @@ static glzb_cbs_s zb_msg_cb;
 
 struct ubus_context* subscriber_ctx = NULL;
 
-static int listen_timeout;
+static int listen_timeout_msecs;
 
 struct cli_listen_data {
     struct uloop_timeout timeout;
@@ -244,7 +244,6 @@ static void call_dev_manage_cb(json_object* msg)
 		new_dev.decision = 0;
 	}
 
-
 	zb_msg_cb.z3_dev_manage_cb(&new_dev);
 
 	return ;
@@ -253,7 +252,6 @@ static void call_dev_manage_cb(json_object* msg)
 
 static void call_zcl_report_cb(json_object* msg)
 {
-	// printf("call_zcl_report_cb\n");
 	if(!msg)
 	{
 		printf("json msg null\n");
@@ -450,13 +448,13 @@ GL_RET glzb_subscribe(int timeout)
 	msg_subscriber.cb = sub_handler;
 	msg_subscriber.remove_cb = sub_remove_callback;
 
-	listen_timeout = timeout;
+	listen_timeout_msecs = timeout;
 	return GL_UBUS_SUBSCRIBE("zigbee", &msg_subscriber);
 }
 
 GL_RET glzb_unsubscribe(void)
 {
-	return GL_RESERVED_ERR;
+	return GL_SUCCESS;
 }
 
 GL_RET glzb_register_cb(glzb_cbs_s *cb)
@@ -612,7 +610,9 @@ GL_RET glzb_get_nwk_status(glzb_nwk_status_para_s* status)
 	status->nwk_status = json_object_get_int(js_nwk_status);
 	if(status->nwk_status != 2)
 	{
-		return 0;
+		json_object_put(root);
+		free(str);
+		return GL_SUCCESS;
 	}
 
 	json_object *js_node_type = NULL;
@@ -1516,7 +1516,7 @@ static void ubus_cli_listen_timeout(struct uloop_timeout* timeout)
     struct cli_listen_data* data = container_of(timeout, struct cli_listen_data, timeout);
     data->timed_out = true;
     uloop_end();
-	listen_timeout = 0;
+	listen_timeout_msecs = 0;
 }
 
 static void do_listen(struct ubus_context* ctx, struct cli_listen_data* data)
@@ -1526,9 +1526,9 @@ static void do_listen(struct ubus_context* ctx, struct cli_listen_data* data)
 
     uloop_init();
     ubus_add_uloop(ctx);
-    if (listen_timeout)
+    if (listen_timeout_msecs)
 	{
-        uloop_timeout_set(&data->timeout, listen_timeout * 1000);
+        uloop_timeout_set(&data->timeout, listen_timeout_msecs);
 	}
 
     uloop_run();

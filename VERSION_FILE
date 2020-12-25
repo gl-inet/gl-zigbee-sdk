@@ -1,3 +1,12 @@
+Ver: 2.2.2
+Build: 2020.12.25
+Changes:
+	1. Fix bug: "glzb_get_nwk_status()" causes memory leak 
+	2. The "glzb_subscribe()" parameter "timeout" is changed to milliseconds
+
+
+
+---------------------------------------------------------------------------------
 Ver: 2.2.1
 Build: 2020.12.18
 Changes:
