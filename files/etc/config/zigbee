@@ -1,0 +1,4 @@
+
+config interface 'spi'
+
+config interface 'uart'

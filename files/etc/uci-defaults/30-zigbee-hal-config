@@ -1,0 +1,56 @@
+#!/bin/sh
+
+. /lib/functions.sh
+board=$(board_name)
+model="${board#*-}"
+
+if [ $model == s1300 ]; then
+    uci set zigbee.spi=interface
+    uci set zigbee.spi.spi_device='/dev/spidev1.0'
+    [ `grep "DISTRIB_TARGET" /etc/openwrt_release|cut -b 17-31` = "ipq40xx/generic" ] && {
+        echo 460 > /sys/class/gpio/export
+        echo out > /sys/class/gpio/gpio460/direction
+        echo 1 > /sys/class/gpio/gpio460/value
+    }
+    [ -n "$(ls -l /sys/class/gpio/gpiochip412 2>/dev/null)" ] && S1300_CS_GPIO='457' || S1300_CS_GPIO='45'
+    [ -n "$(ls -l /sys/class/gpio/gpiochip412 2>/dev/null)" ] && S1300_INT_GPIO='454' || S1300_INT_GPIO='42'
+    [ -n "$(ls -l /sys/class/gpio/gpiochip412 2>/dev/null)" ] && S1300_RES_GPIO='461' || S1300_RES_GPIO='49'
+    [ -n "$(ls -l /sys/class/gpio/gpiochip412 2>/dev/null)" ] && S1300_WAKE_GPIO='452' || S1300_WAKE_GPIO='40'
+    uci set zigbee.spi.spi_cs_io=${S1300_CS_GPIO}
+    uci set zigbee.spi.spi_int_io=${S1300_INT_GPIO}
+    uci set zigbee.spi.spi_reset_io=${S1300_RES_GPIO}
+    uci set zigbee.spi.spi_wake_io=${S1300_WAKE_GPIO}
+    uci set zigbee.uart=interface
+    uci set zigbee.uart.port='/dev/ttyMSM1'
+    uci set zigbee.uart.baudrate='115200'
+    uci set zigbee.uart.flow_control='n'
+	uci set zigbee.uart.reset_method='soft'
+    uci commit zigbee
+elif [ $model == b2200 ]; then
+    uci set zigbee.spi=interface
+    uci set zigbee.spi.spi_device='/dev/spidev1.0'
+    uci set zigbee.spi.spi_cs_io='45'
+    uci set zigbee.spi.spi_int_io='2'
+    uci set zigbee.spi.spi_reset_io='43'
+    uci set zigbee.spi.spi_wake_io='48'
+    uci commit zigbee
+elif [ $model == x750 ]; then
+	echo 1 > /sys/class/gpio/export
+	echo 1 > /sys/class/gpio/gpio1/value
+    uci set zigbee.uart=interface
+    uci set zigbee.uart.port='/dev/ttyS0'
+    uci set zigbee.uart.baudrate='115200'
+    uci set zigbee.uart.flow_control='n'
+	uci set zigbee.uart.reset_method='soft'
+    uci commit zigbee
+elif [ $model == mt300n-v2 ]; then
+	echo 5 > /sys/class/gpio/export
+	echo out > /sys/class/gpio/gpio5/direction
+	echo 1 > /sys/class/gpio/gpio5/value
+    uci set zigbee.uart=interface
+    uci set zigbee.uart.port='/dev/ttyS1'
+    uci set zigbee.uart.baudrate='115200'
+    uci set zigbee.uart.flow_control='n'
+	uci set zigbee.uart.reset_method='soft'
+    uci commit zigbee
+fi

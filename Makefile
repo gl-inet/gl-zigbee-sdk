@@ -1,16 +1,16 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=gl-zbtool
-PKG_VERSION:=2.2.2
+PKG_VERSION:=2.2.3
 # PKG_RELEASE:=1
 
 include $(INCLUDE_DIR)/package.mk
 
 define Package/gl-zbtool
-  SECTION:=base
-  CATEGORY:=gl-inet
-  TITLE:=A framework for GL-iNet zigbee (emberZnet SDK v2.7).
-  DEPENDS:=+libuci +libubox +libubus +libblobmsg-json +libpthread +libjson-c 
+	SECTION:=base
+	CATEGORY:=gl-inet
+	TITLE:=A framework for GL-iNet zigbee (emberZnet SDK v2.7).
+	DEPENDS:=+libuci +libubox +libubus +libblobmsg-json +libpthread +libjson-c 
 endef
 
 define Package/gl-zbtool/description
@@ -25,7 +25,12 @@ endef
 MAKE_FLAGS += \
 		CFLAGS+="-Wall -DSYSLOG"
 
-# 其他应用程序编译依赖则需要InstallDev
+# MODULE_INTERFACE=SPI or UART
+define Build/Compile
+	$(call Build/Compile/Default,MODULE_INTERFACE=SPI)
+endef
+
+
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/usr/include/
 	$(CP) $(PKG_BUILD_DIR)/include/*.h $(1)/usr/include/
@@ -43,8 +48,13 @@ define Package/gl-zbtool/install
 	$(INSTALL_DIR) $(1)/usr/lib/gl
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/libglzbapi.so $(1)/usr/lib/gl/libglzbapi.so
 	$(LN) /usr/lib/gl/libglzbapi.so $(1)/usr/lib/
+
 	$(INSTALL_DIR) $(1)/etc/init.d
-	$(INSTALL_BIN) ./files/gl-zbtool.init $(1)/etc/init.d/zbdaemon
+	$(INSTALL_BIN) files/etc/init.d/gl-zbtool.init $(1)/etc/init.d/zbdaemon
+	$(INSTALL_DIR) $(1)/etc/config
+	$(INSTALL_DATA) files/etc/config/zigbee $(1)/etc/config/zigbee
+	$(INSTALL_DIR) $(1)/etc/uci-defaults
+	$(INSTALL_BIN) files/etc/uci-defaults/30-zigbee-hal-config $(1)/etc/uci-defaults/30-zigbee-hal-config
 endef
 
 $(eval $(call BuildPackage,gl-zbtool))
