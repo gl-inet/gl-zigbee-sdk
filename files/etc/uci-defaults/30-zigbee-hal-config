@@ -1,8 +1,8 @@
-#!/bin/sh
+#!/bin/sh /etc/rc.common
 
 . /lib/functions.sh
-board=$(board_name)
-model="${board#*-}"
+. /lib/functions/gl_util.sh
+model=$(get_model)
 
 if [ $model == s1300 ]; then
     uci set zigbee.spi=interface
@@ -49,6 +49,14 @@ elif [ $model == mt300n-v2 ]; then
 	echo 1 > /sys/class/gpio/gpio5/value
     uci set zigbee.uart=interface
     uci set zigbee.uart.port='/dev/ttyS1'
+    uci set zigbee.uart.baudrate='115200'
+    uci set zigbee.uart.flow_control='n'
+	uci set zigbee.uart.reset_method='soft'
+    uci commit zigbee
+elif [ $model == x300b ]; then
+	echo 1 > /sys/class/gpio/gpio16/value
+    uci set zigbee.uart=interface
+    uci set zigbee.uart.port='/dev/ttyS0'
     uci set zigbee.uart.baudrate='115200'
     uci set zigbee.uart.flow_control='n'
 	uci set zigbee.uart.reset_method='soft'

@@ -449,6 +449,8 @@ json_object* silicon_labs_send_zdo_request(uint16_t short_id, uint16_t cluster_i
 	EmberStatus status = emberSendZigDevRequest(short_id, cluster_id, EMBER_AF_DEFAULT_APS_OPTIONS, contents, contents_len);
 	_thread_ctx_mutex_unlock();
 
+	free(data);
+	data = NULL;
 	free(contents);
 	contents = NULL;
 

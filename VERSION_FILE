@@ -1,3 +1,11 @@
+Ver: 2.2.4
+Build: 2021.6.5
+Changes:
+	1. Fix bug: "Recv_ClusterCommandParse()" code irregularity
+	2. Fix bug: "silicon_labs_send_zdo_request()" causes memory leak 
+	3. Add "GL-X300B" support
+	4. Change the method of getting model name
+
 Ver: 2.2.2
 Build: 2020.12.25
 Changes:

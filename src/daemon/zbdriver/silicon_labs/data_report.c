@@ -70,7 +70,15 @@ bool Recv_ClusterCommandParse(EmberAfClusterCommand *cmd)
 	printf("msg len: %d\n", msg_len);
 	
 	int str_len = (msg_len*2)+1;
-	char data[str_len];
+	// char data[str_len];
+	// memset(data, 0, str_len);
+	char *data = NULL;
+	data = (char*)malloc(str_len*sizeof(char));
+	if(data == NULL)
+	{
+		printf("malloc memory error!\n");
+		return false;		
+	}
 	memset(data, 0, str_len);
 	uint8_t *msg_buf = cmd->buffer;
 	int ret = uint8array2str(&msg_buf[cmd->payloadStartIndex], data, msg_len);
@@ -90,6 +98,7 @@ bool Recv_ClusterCommandParse(EmberAfClusterCommand *cmd)
 	ubus_notify(ctx, &zigbee_obj, "Notify", b.head, -1);
 
 	json_object_put(obj);
+	free(data);
 
 	return true;
 }
