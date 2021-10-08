@@ -1,8 +1,50 @@
 #!/bin/sh /etc/rc.common
 
 . /lib/functions.sh
-. /lib/functions/gl_util.sh
-model=$(get_model)
+
+board=$(board_name)
+boardname="${board#*-}"
+[ -n "$boardname" ] || {
+        loger "Unsupported model (model not in support-list)"
+        echo ""
+        return
+}
+
+case "$boardname" in
+        ar300m-nor|\
+        ar300m-nand)
+                model=ar300m
+                ;;
+        ar750s-nor|\
+        ar750s-nor-nand)
+                model=ar750s
+                ;;
+        e750-nor|\
+        e750-nor-nand)
+                model=e750
+                ;;
+        x750-nor|\
+        x750-nor-nand)
+                model=x750
+                ;;
+        x300b-nor|\
+        x300b-nor-nand)
+                model=x300b
+                ;;
+        xe300-iot|\
+        xe300-nor|\
+        xe300-nor-nand)
+                model=xe300
+                ;;
+        x1200-nor|\
+        x1200-nor-nand)
+                model=x1200
+                ;;
+        *)
+                model=$boardname
+                ;;
+esac
+echo $model
 
 if [ $model == s1300 ]; then
     uci set zigbee.spi=interface
@@ -55,6 +97,15 @@ elif [ $model == mt300n-v2 ]; then
     uci commit zigbee
 elif [ $model == x300b ]; then
 	echo 1 > /sys/class/gpio/gpio16/value
+    uci set zigbee.uart=interface
+    uci set zigbee.uart.port='/dev/ttyS0'
+    uci set zigbee.uart.baudrate='115200'
+    uci set zigbee.uart.flow_control='n'
+	uci set zigbee.uart.reset_method='soft'
+    uci commit zigbee
+elif [ $model == s200 ]; then
+	echo 1 > /sys/class/gpio/export
+	echo 1 > /sys/class/gpio/gpio1/value
     uci set zigbee.uart=interface
     uci set zigbee.uart.port='/dev/ttyS0'
     uci set zigbee.uart.baudrate='115200'
