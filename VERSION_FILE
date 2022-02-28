@@ -1,11 +1,10 @@
-Ver: 2.3.0
-Build: 2021.10.8
+Ver: 2.3.1
+Build: 2022.02.28
 Changes:
-	1. Change the installation script to fit the OpenWRT source firmware
-	2. Add "GL-S200" support
+	1. Add "s200-nor" model support
 
 
-	
+
 ---------------------------------------------------------------------------------
 Ver: 2.2.4
 Build: 2021.6.5

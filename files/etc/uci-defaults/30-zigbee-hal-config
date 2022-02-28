@@ -40,6 +40,9 @@ case "$boardname" in
         x1200-nor-nand)
                 model=x1200
                 ;;
+        s200-nor)
+                model=s200
+                ;;
         *)
                 model=$boardname
                 ;;
