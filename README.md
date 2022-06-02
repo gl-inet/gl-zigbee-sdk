@@ -104,3 +104,31 @@ $ ./scripts/feeds install <dependency_name>
 
 Look at the doc/GL-Zigbee SDK User Guide. It contains all detail about the API.
 
+
+# Q&A
+
+## zbdaemon don't work
+
+1. Check the  hardware configuration is correctly imported.
+
+    ```shell
+    root@OpenWrt:~# uci show zigbee
+    zigbee.spi=interface
+    zigbee.uart=interface
+    zigbee.uart.port='/dev/ttyS0'
+    zigbee.uart.baudrate='115200'
+    zigbee.uart.flow_control='n'
+    zigbee.uart.reset_method='soft'
+    ```
+
+2. Check that the reset IO is generated correctly and pulled up correctly.
+
+    ```shell
+    root@OpenWrt:~# cat /sys/class/gpio/gpio1/value 
+    1
+    ```
+
+3. Check whether the serial port is used by other function, especially the system debugging serial port.
+
+    
+ 
