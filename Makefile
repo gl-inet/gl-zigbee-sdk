@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=gl-zbtool
-PKG_VERSION:=2.3.1
+PKG_VERSION:=2.3.3
 # PKG_RELEASE:=1
 
 include $(INCLUDE_DIR)/package.mk
@@ -27,7 +27,7 @@ MAKE_FLAGS += \
 
 # MODULE_INTERFACE=SPI or UART
 define Build/Compile
-	$(call Build/Compile/Default,MODULE_INTERFACE=SPI)
+	$(call Build/Compile/Default,MODULE_INTERFACE=UART)
 endef
 
 
