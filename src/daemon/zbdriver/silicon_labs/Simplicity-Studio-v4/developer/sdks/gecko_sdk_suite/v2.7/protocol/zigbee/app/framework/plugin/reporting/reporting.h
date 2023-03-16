@@ -27,7 +27,7 @@
 #endif
 
 typedef struct {
-  uint32_t lastReportTimeMs;
+  uint64_t lastReportTimeMs;
   EmberAfDifferenceType lastReportValue;
   bool reportableChange;
 } EmAfPluginReportVolatileData;

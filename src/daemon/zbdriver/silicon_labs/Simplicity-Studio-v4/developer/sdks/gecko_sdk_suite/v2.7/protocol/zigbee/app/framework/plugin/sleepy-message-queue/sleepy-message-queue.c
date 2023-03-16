@@ -41,7 +41,7 @@ static uint8_t emGetFirstUnusedQueueIndex(void);
 typedef struct {
   EmberAfSleepyMessage sleepyMsg;
   uint8_t  status;
-  uint32_t timeoutMSec;
+  uint64_t timeoutMSec;
 } emSleepyMessage;
 
 #define SLEEPY_MSG_QUEUE_NUM_ENTRIES  EMBER_AF_PLUGIN_SLEEPY_MESSAGE_QUEUE_SLEEPY_QUEUE_SIZE
@@ -110,22 +110,22 @@ static void emRestartMessageTimer()
 {
   uint32_t smallestTimeoutIndex = SLEEPY_MSG_QUEUE_NUM_ENTRIES;
   uint32_t smallestTimeoutMSec = 0xFFFFFFFF;
-  uint32_t timeNowMs;
+  uint64_t timeNowMs;
   uint32_t remainingMs;
   uint32_t delayQs;
   uint8_t x;
 
-  timeNowMs = halCommonGetInt32uMillisecondTick();
+  timeNowMs = halCommonGetInt64uMillisecondTick();
 
   for ( x = 0; x < SLEEPY_MSG_QUEUE_NUM_ENTRIES; x++ ) {
     if ( SleepyMessageQueue[x].status == SLEEPY_MSG_QUEUE_STATUS_USED ) {
-      if ( timeGTorEqualInt32u(timeNowMs, SleepyMessageQueue[x].timeoutMSec) ) {
+      if ( timeGTorEqualInt64u(timeNowMs, SleepyMessageQueue[x].timeoutMSec) ) {
         // Timeout already expired - break out of loop - process immediately.
         smallestTimeoutIndex = x;
         smallestTimeoutMSec = 0;
         break;
       } else {
-        remainingMs = elapsedTimeInt32u(timeNowMs, SleepyMessageQueue[x].timeoutMSec);
+        remainingMs = elapsedTimeInt64u(timeNowMs, SleepyMessageQueue[x].timeoutMSec);
         if ( remainingMs < smallestTimeoutMSec ) {
           smallestTimeoutMSec = remainingMs;
           smallestTimeoutIndex = x;
@@ -157,7 +157,7 @@ EmberAfSleepyMessageId emberAfPluginSleepyMessageQueueStoreMessage(EmberAfSleepy
     if ( x < SLEEPY_MSG_QUEUE_NUM_ENTRIES ) {
       MEMCOPY( (uint8_t *)&SleepyMessageQueue[x].sleepyMsg, (uint8_t *)pmsg, sizeof(EmberAfSleepyMessage) );
       SleepyMessageQueue[x].status = SLEEPY_MSG_QUEUE_STATUS_USED;
-      SleepyMessageQueue[x].timeoutMSec = (timeoutSec << 10) + halCommonGetInt32uMillisecondTick();
+      SleepyMessageQueue[x].timeoutMSec = (timeoutSec << 10) + halCommonGetInt64uMillisecondTick();
 
       // Reschedule timer after adding the new message since new message could have the shortest timeout.
       emRestartMessageTimer();
@@ -171,24 +171,24 @@ EmberAfSleepyMessageId emberAfPluginSleepyMessageQueueGetPendingMessageId(EmberE
 {
   uint8_t  smallestTimeoutIndex = SLEEPY_MSG_QUEUE_NUM_ENTRIES;
   uint32_t smallestTimeoutMSec = 0xFFFFFFFF;
-  uint32_t timeNowMs;
+  uint64_t timeNowMs;
   uint32_t remainingMs;
   uint8_t  x;
   uint8_t  stat;
 
-  timeNowMs = halCommonGetInt32uMillisecondTick();
+  timeNowMs = halCommonGetInt64uMillisecondTick();
   for ( x = 0; x < SLEEPY_MSG_QUEUE_NUM_ENTRIES; x++ ) {
     if ( SleepyMessageQueue[x].status == SLEEPY_MSG_QUEUE_STATUS_USED ) {
       stat = MEMCOMPARE(SleepyMessageQueue[x].sleepyMsg.dstEui64, dstEui64, EUI64_SIZE);
       if ( !stat ) {
         // Matching entry found - look for match with smallest timeout.
-        if ( timeGTorEqualInt32u(timeNowMs, SleepyMessageQueue[x].timeoutMSec) ) {
+        if ( timeGTorEqualInt64u(timeNowMs, SleepyMessageQueue[x].timeoutMSec) ) {
           // Timeout already expired - break out of loop - process immediately.
           smallestTimeoutIndex = x;
           smallestTimeoutMSec = 0;
           break;
         } else {
-          remainingMs = elapsedTimeInt32u(timeNowMs, SleepyMessageQueue[x].timeoutMSec);
+          remainingMs = elapsedTimeInt64u(timeNowMs, SleepyMessageQueue[x].timeoutMSec);
           if ( remainingMs < smallestTimeoutMSec ) {
             smallestTimeoutMSec = remainingMs;
             smallestTimeoutIndex = x;
@@ -206,13 +206,13 @@ EmberAfSleepyMessageId emberAfPluginSleepyMessageQueueGetPendingMessageId(EmberE
 uint32_t emMessageMSecRemaining(EmberAfSleepyMessageId sleepyMsgId)
 {
   uint32_t remainingMs = 0xFFFFFFFF;
-  uint32_t timeNowMs = halCommonGetInt32uMillisecondTick();
+  uint64_t timeNowMs = halCommonGetInt64uMillisecondTick();
 
   if ( (sleepyMsgId < SLEEPY_MSG_QUEUE_NUM_ENTRIES) && (SleepyMessageQueue[sleepyMsgId].status == SLEEPY_MSG_QUEUE_STATUS_USED) ) {
-    if ( timeGTorEqualInt32u(timeNowMs, SleepyMessageQueue[sleepyMsgId].timeoutMSec) ) {
+    if ( timeGTorEqualInt64u(timeNowMs, SleepyMessageQueue[sleepyMsgId].timeoutMSec) ) {
       remainingMs = 0;
     } else {
-      remainingMs = elapsedTimeInt32u(timeNowMs, SleepyMessageQueue[sleepyMsgId].timeoutMSec);
+      remainingMs = elapsedTimeInt64u(timeNowMs, SleepyMessageQueue[sleepyMsgId].timeoutMSec);
     }
   }
   return remainingMs;
@@ -223,7 +223,7 @@ void PrintMessageTimeInfo(uint8_t x)
 {
   if ( (x < SLEEPY_MSG_QUEUE_NUM_ENTRIES) && (SleepyMessageQueue[x].status == SLEEPY_MSG_QUEUE_STATUS_USED) ) {
     emberAfAppPrintln("==== USED MESSAGE, x=%d", x);
-    emberAfAppPrintln("  currTime=%d, timeout=%d", halCommonGetInt32uMillisecondTick(), SleepyMessageQueue[x].timeoutMSec);
+    emberAfAppPrintln("  currTime=%ld, timeout=%d", halCommonGetInt64uMillisecondTick(), SleepyMessageQueue[x].timeoutMSec);
   }
 }
 
@@ -286,15 +286,15 @@ void emberAfPluginSleepyMessageQueueRemoveAllMessages(EmberEUI64 dstEui64)
 
 void emberAfPluginSleepyMessageQueueTimeoutEventHandler(void)
 {
-  uint32_t timeNowMs;
+  uint64_t timeNowMs;
   uint8_t x;
 
   emberEventControlSetInactive(msgTimeoutEvent);
-  timeNowMs = halCommonGetInt32uMillisecondTick();
+  timeNowMs = halCommonGetInt64uMillisecondTick();
 
   for ( x = 0; x < SLEEPY_MSG_QUEUE_NUM_ENTRIES; x++ ) {
     if ( SleepyMessageQueue[x].status == SLEEPY_MSG_QUEUE_STATUS_USED ) {
-      if ( timeGTorEqualInt32u(timeNowMs, SleepyMessageQueue[x].timeoutMSec) ) {
+      if ( timeGTorEqualInt64u(timeNowMs, SleepyMessageQueue[x].timeoutMSec) ) {
         // Found entry that expired.
         // Invoke callback to notify about message timeout.
         // Allow the callback the opportunity to access elements in this entry.

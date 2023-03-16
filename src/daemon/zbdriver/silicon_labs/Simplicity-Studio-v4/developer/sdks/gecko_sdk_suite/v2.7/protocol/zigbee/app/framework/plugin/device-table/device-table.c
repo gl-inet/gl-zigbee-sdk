@@ -389,7 +389,7 @@ void emAfDeviceTableUpdateDeviceState(uint16_t index, uint8_t newState)
 
 uint32_t emberAfDeviceTableTimeSinceLastMessage(uint16_t index)
 {
-  uint32_t timeSinceLastMessage = halCommonGetInt32uMillisecondTick();
+  uint64_t timeSinceLastMessage = halCommonGetInt64uMillisecondTick();
 
   timeSinceLastMessage -= deviceTable[index].lastMsgTimestamp;
   timeSinceLastMessage /= MILLISECOND_TICKS_PER_SECOND;
@@ -500,7 +500,7 @@ void emAfDeviceTableLoad(void)
       deviceTable[i].state = EMBER_AF_PLUGIN_DEVICE_TABLE_STATE_JOINED;
     }
 
-    deviceTable[i].lastMsgTimestamp = halCommonGetInt32uMillisecondTick();
+    deviceTable[i].lastMsgTimestamp = halCommonGetInt64uMillisecondTick();
   }
 
   fclose(fp);

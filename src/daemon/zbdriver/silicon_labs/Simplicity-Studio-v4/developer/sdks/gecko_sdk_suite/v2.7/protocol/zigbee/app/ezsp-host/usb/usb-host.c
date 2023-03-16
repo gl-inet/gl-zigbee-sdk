@@ -75,11 +75,11 @@ static EzspBuffer *rxDataBuffer;             // rec'd DATA frame buffer
 EzspStatus usbReconnect()
 {
   ezspSerialClose();
-  uint32_t startTime = halCommonGetInt32uMillisecondTick();
-  uint32_t intervalTime;
-  while (halCommonGetInt32uMillisecondTick() - startTime < 2000) {
-    intervalTime = halCommonGetInt32uMillisecondTick();
-    while (halCommonGetInt32uMillisecondTick() - intervalTime < 500) {
+  uint64_t startTime = halCommonGetInt64uMillisecondTick();
+  uint64_t intervalTime;
+  while (halCommonGetInt64uMillisecondTick() - startTime < 2000) {
+    intervalTime = halCommonGetInt64uMillisecondTick();
+    while (halCommonGetInt64uMillisecondTick() - intervalTime < 500) {
     }
     ;
     if (usbStart() == EZSP_SUCCESS) {
@@ -100,8 +100,8 @@ EzspStatus usbResetNcp()
       // Close the serial port to allow re-enumeration with the same port number
       ezspSerialClose();
       // Wait for 3s for re-enumeration
-      uint32_t startTime = halCommonGetInt32uMillisecondTick();
-      while (halCommonGetInt32uMillisecondTick() - startTime < 3000) {
+      uint64_t startTime = halCommonGetInt64uMillisecondTick();
+      while (halCommonGetInt64uMillisecondTick() - startTime < 3000) {
       }
       return usbReconnect();
       break;

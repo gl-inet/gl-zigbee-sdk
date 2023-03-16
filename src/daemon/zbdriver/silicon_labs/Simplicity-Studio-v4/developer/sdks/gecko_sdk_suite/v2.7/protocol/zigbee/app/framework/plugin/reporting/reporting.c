@@ -151,8 +151,8 @@ void emberAfPluginReportingTickEventHandler(void)
     // We will only send reports for active reported attributes and only if a
     // reportable change has occurred and the minimum interval has elapsed or
     // if the maximum interval is set and has elapsed.
-    elapsedMs = elapsedTimeInt32u(emAfPluginReportVolatileData[i].lastReportTimeMs,
-                                  halCommonGetInt32uMillisecondTick());
+    elapsedMs = elapsedTimeInt64u(emAfPluginReportVolatileData[i].lastReportTimeMs,
+                                  halCommonGetInt64uMillisecondTick());
     if (entry.endpoint == EMBER_AF_PLUGIN_REPORTING_UNUSED_ENDPOINT_ID
         || entry.direction != EMBER_ZCL_REPORTING_DIRECTION_REPORTED
         || (elapsedMs
@@ -268,7 +268,7 @@ void emberAfPluginReportingTickEventHandler(void)
     // and changes.  We only track changes for data types that are small enough
     // for us to compare. For CHAR and OCTET strings, we substitute a 32-bit hash.
     emAfPluginReportVolatileData[i].reportableChange = false;
-    emAfPluginReportVolatileData[i].lastReportTimeMs = halCommonGetInt32uMillisecondTick();
+    emAfPluginReportVolatileData[i].lastReportTimeMs = halCommonGetInt64uMillisecondTick();
     uint32_t stringHash = 0;
     uint8_t *copyData = readData;
     uint8_t copySize = dataSize;
@@ -757,8 +757,8 @@ static void scheduleTick(void)
                                 * MILLISECOND_TICKS_PER_SECOND);
       uint32_t maxIntervalMs = (entry.data.reported.maxInterval
                                 * MILLISECOND_TICKS_PER_SECOND);
-      uint32_t elapsedMs = elapsedTimeInt32u(emAfPluginReportVolatileData[i].lastReportTimeMs,
-                                             halCommonGetInt32uMillisecondTick());
+      uint32_t elapsedMs = elapsedTimeInt64u(emAfPluginReportVolatileData[i].lastReportTimeMs,
+                                             halCommonGetInt64uMillisecondTick());
       uint32_t remainingMs = MAX_INT32U_VALUE;
       if (emAfPluginReportVolatileData[i].reportableChange) {
         remainingMs = (minIntervalMs < elapsedMs
@@ -883,7 +883,7 @@ EmberAfStatus emberAfPluginReportingConfigureReportedAttribute(const EmberAfPlug
     entry.mask = newEntry->mask;
     entry.manufacturerCode = newEntry->manufacturerCode;
     if (index < REPORT_TABLE_SIZE) {
-      emAfPluginReportVolatileData[index].lastReportTimeMs = halCommonGetInt32uMillisecondTick();
+      emAfPluginReportVolatileData[index].lastReportTimeMs = halCommonGetInt64uMillisecondTick();
       emAfPluginReportVolatileData[index].lastReportValue = 0;
     }
   }

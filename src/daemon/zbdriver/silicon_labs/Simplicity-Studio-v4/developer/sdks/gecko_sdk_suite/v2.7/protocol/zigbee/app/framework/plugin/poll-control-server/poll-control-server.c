@@ -67,7 +67,7 @@ enum {
   POLLING = 2,
 };
 static uint8_t state = INITIAL;
-static uint32_t fastPollStartTimeMs;
+static uint64_t fastPollStartTimeMs;
 
 // Flags used to track trust center check in failures
 static bool trustCenterCheckInRequestSent;
@@ -208,8 +208,8 @@ static bool isPollControlBindingTrustCenter(uint8_t endpoint, uint8_t bindingInd
 
 static bool outstandingFastPollRequests(uint8_t endpoint)
 {
-  uint32_t currentTimeMs = halCommonGetInt32uMillisecondTick();
-  uint32_t elapsedFastPollTimeMs = elapsedTimeInt32u(fastPollStartTimeMs,
+  uint64_t currentTimeMs = halCommonGetInt64uMillisecondTick();
+  uint32_t elapsedFastPollTimeMs = elapsedTimeInt64u(fastPollStartTimeMs,
                                                      currentTimeMs);
   uint16_t fastPollTimeoutQs = 0;
   uint8_t i;
@@ -230,7 +230,7 @@ static bool outstandingFastPollRequests(uint8_t endpoint)
     uint32_t newFastPollEndTimeMs = (fastPollStartTimeMs
                                      + (fastPollTimeoutQs
                                         * MILLISECOND_TICKS_PER_QUARTERSECOND));
-    uint32_t remainingFastPollTimeMs = elapsedTimeInt32u(currentTimeMs,
+    uint32_t remainingFastPollTimeMs = elapsedTimeInt64u(currentTimeMs,
                                                          newFastPollEndTimeMs);
     scheduleServerTick(endpoint, remainingFastPollTimeMs);
     return true;
@@ -472,7 +472,7 @@ void emberAfPollControlClusterServerTickCallback(uint8_t endpoint)
 
     if (fastPollTimeoutQs != 0) {
       state = POLLING;
-      fastPollStartTimeMs = halCommonGetInt32uMillisecondTick();
+      fastPollStartTimeMs = halCommonGetInt64uMillisecondTick();
       scheduleServerTick(endpoint,
                          (fastPollTimeoutQs
                           * MILLISECOND_TICKS_PER_QUARTERSECOND));

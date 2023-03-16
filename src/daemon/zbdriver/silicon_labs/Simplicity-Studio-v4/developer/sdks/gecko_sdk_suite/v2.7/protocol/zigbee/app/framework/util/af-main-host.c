@@ -700,7 +700,7 @@ EzspStatus emberAfSetEzspConfigValue(EzspConfigId configId,
 {
     EzspStatus ezspStatus = ezspSetConfigurationValue(configId, value);
     emberAfAppFlush();
-    emberAfAppPrint("Ezsp Config: set %p to 0x%2x:", configIdName, value);
+    printf("Ezsp Config: set %s to 0x%2x status: 0x%02x\n", configIdName, value, ezspStatus);
 
     emberAfAppDebugExec(emAfPrintStatus("set", ezspStatus));
     emberAfAppFlush();

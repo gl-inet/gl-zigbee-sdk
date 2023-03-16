@@ -1587,7 +1587,7 @@ typedef struct {
   /** Indicates how long before the event fires.
    *  Units are milliseconds.
    */
-  uint32_t timeToExecute;
+  uint64_t timeToExecute;
 } EmberEventControl;
 
 /** @brief Complete events with a control and a handler procedure.
@@ -1610,7 +1610,7 @@ typedef const struct {
  */
 typedef struct {
   // The time when the next event associated with this task will fire.
-  uint32_t nextEventTime;
+  uint64_t nextEventTime;
   // The list of events associated with this task.
   EmberEventData *events;
   // A flag that indicates the task has something to do other than events.

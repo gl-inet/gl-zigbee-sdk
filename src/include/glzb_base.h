@@ -220,6 +220,7 @@
 #define  GL_ZCL_ELECTRICAL_MEASUREMENT_CLUSTER_ID                              0x0B04
 #define  GL_ZCL_DIAGNOSTICS_CLUSTER_ID                                         0x0B05
 #define  GL_ZCL_ZLL_COMMISSIONING_CLUSTER_ID                                   0x1000
+#define  GL_ZCL_TUYA_ALARM_CLUSTER_ID                                          0xEF00
 #define  GL_ZCL_SAMPLE_MFG_SPECIFIC_CLUSTER_ID                                 0xFC00
 #define  GL_ZCL_OTA_CONFIGURATION_CLUSTER_ID                                   0xFC01
 // #define  GL_ZCL_MFGLIB_CLUSTER_ID                                              0xFC

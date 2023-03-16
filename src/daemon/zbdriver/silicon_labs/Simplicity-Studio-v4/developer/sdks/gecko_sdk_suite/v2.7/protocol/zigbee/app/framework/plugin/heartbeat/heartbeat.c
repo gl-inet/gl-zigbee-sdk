@@ -22,9 +22,9 @@
 void emberAfPluginHeartbeatTickCallback(void)
 {
   static uint32_t lastMs = 0;
-  uint32_t nowMs = halCommonGetInt32uMillisecondTick();
+  uint64_t nowMs = halCommonGetInt64uMillisecondTick();
   if (EMBER_AF_PLUGIN_HEARTBEAT_PERIOD_QS * MILLISECOND_TICKS_PER_QUARTERSECOND
-      < elapsedTimeInt32u(lastMs, nowMs)) {
+      < elapsedTimeInt64u(lastMs, nowMs)) {
     halToggleLed(BOARD_HEARTBEAT_LED);
     lastMs = nowMs;
   }

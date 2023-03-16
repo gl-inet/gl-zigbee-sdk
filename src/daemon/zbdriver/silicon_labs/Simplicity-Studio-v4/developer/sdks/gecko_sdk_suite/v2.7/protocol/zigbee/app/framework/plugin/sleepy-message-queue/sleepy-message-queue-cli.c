@@ -37,14 +37,14 @@ void emAfSleepyMessageQueueCliRemoveAllMsg(void);
 void emAfSleepyMessageQueueCliGetNextMessageEventTimeoutMs()
 {
   uint32_t timeoutMs;
-  uint32_t msTick;
+  uint64_t msTick;
   uint8_t msgId;
 
   msgId = (uint8_t)emberUnsignedCommandArgument(0);
   timeoutMs = emMessageMSecRemaining(msgId);
-  msTick = halCommonGetInt32uMillisecondTick();
+  msTick = halCommonGetInt64uMillisecondTick();
   //emberAfAppPrintln("==== REM TIME=%d msec, evtTmout=%d, msTick=%d", timeoutMs, msgTimeoutEvent.timeToExecute, msTick );
-  emberAfAppPrintln("Remaining Time=%d msec, msTick=%d", timeoutMs, msTick);
+  emberAfAppPrintln("Remaining Time=%d msec, msTick=%ld", timeoutMs, msTick);
 }
 
 // plugin sleepy-message-queue unusedCnt
@@ -144,8 +144,8 @@ void emAfSleepyMessageQueueCliRemoveAllMsg(void)
 
 void emAfSleepyMessageQueueCliGetCurrentInt32uMillisecondTick()
 {
-  uint32_t tickMs;
+  uint64_t tickMs;
 
-  tickMs = halCommonGetInt32uMillisecondTick();
-  emberAfAppPrintln("MS Tick=%d", tickMs);
+  tickMs = halCommonGetInt64uMillisecondTick();
+  emberAfAppPrintln("MS Tick=%ld", tickMs);
 }

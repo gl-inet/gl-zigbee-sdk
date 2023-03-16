@@ -251,6 +251,9 @@ EmberStatus emberAfPluginNetworkCreatorSecurityStart(bool centralizedNetwork)
   }
   status = emberSetExtendedSecurityBitmask(extended);
 
+  printf("--------------------------emAfClearLinkKeyTable");
+  emAfClearLinkKeyTable();
+
   kickout:
   emberAfCorePrintln("%p: %p: 0x%X",
                      EMBER_AF_PLUGIN_NETWORK_CREATOR_SECURITY_PLUGIN_NAME,

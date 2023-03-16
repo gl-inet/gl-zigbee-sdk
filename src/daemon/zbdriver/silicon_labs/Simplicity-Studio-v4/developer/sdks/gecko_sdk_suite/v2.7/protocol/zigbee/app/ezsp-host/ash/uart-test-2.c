@@ -238,8 +238,8 @@ static void echoTest(int reps, int start, int end, int timer)
   int i, j;
   bool passed;
   bool stopped;
-  uint32_t startTime;
-  uint32_t elapsedTime;
+  uint64_t startTime;
+  uint64_t elapsedTime;
 
   if (reps) {
     printf("Sending %d ezspEcho commands ", reps);
@@ -261,7 +261,7 @@ static void echoTest(int reps, int start, int end, int timer)
 
   ashClearCounters(&ashCount);
   xoffsSent = overflowErrors = overrunErrors = framingErrors = 0;
-  startTime = halCommonGetInt32uMillisecondTick();
+  startTime = halCommonGetInt64uMillisecondTick();
   for ( i = 0, j = start, passed = true, stopped = false;
         ((i < reps) || (reps == 0)) && passed && !stopped;
         i++, j++) {
@@ -272,7 +272,7 @@ static void echoTest(int reps, int start, int end, int timer)
     stopped = kbInput();
   }
   myCount = ashCount;
-  elapsedTime = halCommonGetInt32uMillisecondTick() - startTime;
+  elapsedTime = halCommonGetInt64uMillisecondTick() - startTime;
   if (timer) {
     ezspSetTimer(0, 0, EMBER_EVENT_MS_TIME, false);
   }

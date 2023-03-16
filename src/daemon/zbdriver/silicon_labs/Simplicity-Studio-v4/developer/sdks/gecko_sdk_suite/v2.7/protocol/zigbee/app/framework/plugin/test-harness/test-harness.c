@@ -802,7 +802,7 @@ void emAfKeyEstablishementTestHarnessEventHandler(void)
 {
   emberEventControlSetInactive(emAfKeyEstablishmentTestHarnessEventControl);
   testHarnessPrintln("Test Harness Event Handler fired, Tick: 0x%4X",
-                     halCommonGetInt32uMillisecondTick());
+                     halCommonGetInt64uMillisecondTick());
 
   stopRecursion = true;
 #if defined(EMBER_AF_PLUGIN_KEY_ESTABLISHMENT)
@@ -858,7 +858,7 @@ bool emAfKeyEstablishmentTestHarnessCbkeCallback(uint8_t cbkeOperation,
   delayedCbkeOperation = cbkeOperation;
 
   testHarnessPrintln("Test Harness Tick: 0x%4X",
-                     halCommonGetInt32uMillisecondTick());
+                     halCommonGetInt64uMillisecondTick());
   emberAfEventControlSetDelayMS(&emAfKeyEstablishmentTestHarnessEventControl,
                                 (((uint32_t)(cbkeDelaySeconds))
                                  * MILLISECOND_TICKS_PER_SECOND));  // convert to MS

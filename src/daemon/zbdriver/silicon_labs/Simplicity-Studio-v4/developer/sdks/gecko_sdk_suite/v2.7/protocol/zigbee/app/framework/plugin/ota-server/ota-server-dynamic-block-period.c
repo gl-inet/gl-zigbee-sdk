@@ -59,7 +59,7 @@
 typedef struct {
   EmberNodeId nodeId;
   uint8_t     unitDiscoveryState; // STATE_ values
-  uint32_t    msTickWhenLastSeen;
+  uint64_t    msTickWhenLastSeen;
 } EmAfOtaServerDownloadingNode;
 
 EmAfOtaServerDownloadingNode downloadingNodes[MAX_DOWNLOADS];
@@ -106,7 +106,7 @@ void emAfOtaServerDynamicBlockPeriodInit()
 void emAfOtaServerDynamicBlockPeriodTick()
 {
   uint8_t nodeIndex;
-  uint32_t currentMsTick = halCommonGetInt32uMillisecondTick();
+  uint64_t currentMsTick = halCommonGetInt64uMillisecondTick();
   uint32_t secondsElapsed;
 
   // Purge any inactive clients
@@ -149,7 +149,7 @@ uint8_t emAfOtaServerCheckDynamicBlockPeriodDownload(EmberAfImageBlockRequestCal
         // the Minimum Block Period field
         tolerance = EMBER_AF_PLUGIN_OTA_SERVER_TEST_BLOCK_PERIOD_VALUE >> TOLERANCE_VALUE_BITSHIFT;
         threshold = EMBER_AF_PLUGIN_OTA_SERVER_TEST_BLOCK_PERIOD_VALUE - tolerance;
-        secondsElapsed = (halCommonGetInt32uMillisecondTick()
+        secondsElapsed = (halCommonGetInt64uMillisecondTick()
                           - downloadingNodes[nodeIndex].msTickWhenLastSeen)
                          / MILLISECOND_TICKS_PER_SECOND;
         if (secondsElapsed > threshold) {
@@ -165,7 +165,7 @@ uint8_t emAfOtaServerCheckDynamicBlockPeriodDownload(EmberAfImageBlockRequestCal
       // If we're not in STATE_IN_DISCOVERY, then we already know if the client
       // uses ms or seconds
       downloadingNodes[nodeIndex].msTickWhenLastSeen =
-        halCommonGetInt32uMillisecondTick();
+        halCommonGetInt64uMillisecondTick();
       return EMBER_ZCL_STATUS_SUCCESS;
     }
   }
@@ -180,7 +180,7 @@ uint8_t emAfOtaServerCheckDynamicBlockPeriodDownload(EmberAfImageBlockRequestCal
   if (MAX_DOWNLOADS != nodeIndex) {
     // Free entry found. Mark it off and send it a delay test
     downloadingNodes[nodeIndex].nodeId = data->source;
-    downloadingNodes[nodeIndex].msTickWhenLastSeen = halCommonGetInt32uMillisecondTick();
+    downloadingNodes[nodeIndex].msTickWhenLastSeen = halCommonGetInt64uMillisecondTick();
     downloadingNodes[nodeIndex].unitDiscoveryState = STATE_IN_DISCOVERY;
     // Tell the node to delay some value. When we hear from it again, the time
     // elapsed will indicate whether it's treating the field as seconds or

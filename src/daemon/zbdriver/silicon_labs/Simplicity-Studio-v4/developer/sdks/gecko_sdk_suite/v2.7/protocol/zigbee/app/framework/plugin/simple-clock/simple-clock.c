@@ -24,8 +24,8 @@
 // "tickMs" is the millsecond tick at which that time was set.  The variable
 // "remainderMs" is used to track sub-second chunks of time when converting
 // from ticks to seconds.
-static uint32_t timeS = 0;
-static uint32_t tickMs = 0;
+static uint64_t timeS = 0;
+static uint64_t tickMs = 0;
 static uint16_t remainderMs = 0;
 
 EmberAfPluginSimpleClockTimeSyncStatus syncStatus = EMBER_AF_SIMPLE_CLOCK_NEVER_UTC_SYNC;
@@ -49,7 +49,7 @@ uint32_t emberAfGetCurrentTimeCallback(void)
   // of time during the conversion from ticks to seconds so the clock does not
   // drift due to rounding.
   uint32_t elapsedMs, lastTickMs = tickMs;
-  tickMs = halCommonGetInt32uMillisecondTick();
+  tickMs = halCommonGetInt64uMillisecondTick();
   elapsedMs = elapsedTimeInt32u(lastTickMs, tickMs);
   timeS += elapsedMs / MILLISECOND_TICKS_PER_SECOND;
   remainderMs += elapsedMs % MILLISECOND_TICKS_PER_SECOND;
@@ -73,7 +73,7 @@ uint32_t emberAfGetCurrentTimeSecondsWithMsPrecision(uint16_t* millisecondsRemai
 
 void emberAfSetTimeCallback(uint32_t utcTime)
 {
-  tickMs = halCommonGetInt32uMillisecondTick();
+  tickMs = halCommonGetInt64uMillisecondTick();
   timeS = utcTime;
   remainderMs = 0;
 

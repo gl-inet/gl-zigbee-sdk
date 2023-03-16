@@ -114,7 +114,7 @@ bool nmUtilProcessIncoming(EmberApsFrame *apsFrame,
       && apsFrame->clusterId == NWK_UPDATE_RESPONSE) {
     uint8_t status = message[1];
     if (status == EMBER_ZDP_SUCCESS) {
-      uint16_t now = halCommonGetInt32uMillisecondTick() >> 16;
+      uint16_t now = halCommonGetInt64uMillisecondTick() >> 16;
       uint16_t elapsed = (uint16_t)(now - nmWindowStart);
       uint8_t channelCount = message[10];
       uint32_t mask = 0;

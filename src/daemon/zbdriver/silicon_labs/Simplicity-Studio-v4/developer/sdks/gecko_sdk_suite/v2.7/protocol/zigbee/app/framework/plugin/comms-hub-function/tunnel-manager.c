@@ -50,7 +50,7 @@ typedef struct {
   EmAfCommsHubFunctionTunnelType type;
   EmAfCommsHubFunctionTunnelState state;
   uint8_t tunnelId;
-  uint32_t timeoutMSec;
+  uint64_t timeoutMSec;
 } EmAfCommsHubFunctionTunnel;
 
 static EmAfCommsHubFunctionTunnel tunnels[EMBER_AF_PLUGIN_COMMS_HUB_FUNCTION_TUNNEL_LIMIT];
@@ -336,12 +336,12 @@ void emAfPluginCommsHubFunctionPrint(void)
 void emberAfPluginCommsHubFunctionTunnelEventHandler(void)
 {
   uint8_t tunnelIndex;
-  uint32_t timeNowMs;
+  uint64_t timeNowMs;
   uint32_t nearestEventTimeoutDelayMs = UINT32_MAX;
   uint32_t currentTunnelTimeoutMs = 0;
 
   emberEventControlSetInactive(emberAfPluginCommsHubFunctionTunnelEventControl);
-  timeNowMs = halCommonGetInt32uMillisecondTick();
+  timeNowMs = halCommonGetInt64uMillisecondTick();
 
   emberAfPluginCommsHubFunctionPrintln("CHF: emberAfPluginCommsHubFunctionTunnelEventHandler");
 
@@ -353,7 +353,7 @@ void emberAfPluginCommsHubFunctionTunnelEventHandler(void)
           && tunnels[tunnelIndex].state == REQUEST_PENDING_TUNNEL) {
         // JIRA EMAPPFWKV2-1392: Event handler was not registered and was not working properly
         // if timeout time has passed, then request a tunnel, else retry after least time remaining
-        if (timeGTorEqualInt32u(timeNowMs, tunnels[tunnelIndex].timeoutMSec)) {
+        if (timeGTorEqualInt64u(timeNowMs, tunnels[tunnelIndex].timeoutMSec)) {
           emberAfPluginCommsHubFunctionPrintln("Retrying tunnel creation to node ID 0x%2x",
                                                tunnels[tunnelIndex].remoteNodeId);
           if (requestTunnel(tunnelIndex)) {
@@ -362,7 +362,7 @@ void emberAfPluginCommsHubFunctionTunnelEventHandler(void)
             return;
           }
         } else {
-          currentTunnelTimeoutMs = elapsedTimeInt32u(timeNowMs, tunnels[tunnelIndex].timeoutMSec);
+          currentTunnelTimeoutMs = elapsedTimeInt64u(timeNowMs, tunnels[tunnelIndex].timeoutMSec);
           if (currentTunnelTimeoutMs < nearestEventTimeoutDelayMs) {
             nearestEventTimeoutDelayMs = currentTunnelTimeoutMs;
           }
@@ -705,7 +705,7 @@ static bool requestTunnel(uint8_t tunnelIndex)
   // and let the tunnel event handler take care of the retry.
   if (responsePendingIndex != EM_AF_PLUGIN_COMMS_HUB_FUNCTION_NULL_TUNNEL_INDEX) {
     tunnels[tunnelIndex].state = REQUEST_PENDING_TUNNEL;
-    tunnels[tunnelIndex].timeoutMSec = halCommonGetInt32uMillisecondTick();
+    tunnels[tunnelIndex].timeoutMSec = halCommonGetInt64uMillisecondTick();
     emberEventControlSetActive(emberAfPluginCommsHubFunctionTunnelEventControl);
     return true;
   }
@@ -737,7 +737,7 @@ static bool handleRequestTunnelFailure(uint8_t tunnelIndex, EmberAfPluginTunneli
   if (status == EMBER_AF_PLUGIN_TUNNELING_CLIENT_BUSY) {
     // Per GBCS send another request 3 minutes from now
     tunnels[tunnelIndex].state = REQUEST_PENDING_TUNNEL;
-    tunnels[tunnelIndex].timeoutMSec = halCommonGetInt32uMillisecondTick()
+    tunnels[tunnelIndex].timeoutMSec = halCommonGetInt64uMillisecondTick()
                                        + (MILLISECOND_TICKS_PER_SECOND * 180);
     emberEventControlSetActive(emberAfPluginCommsHubFunctionTunnelEventControl);
     emberAfPluginCommsHubFunctionPrintln("CHF: Busy status received from node ID 0x%2x", tunnels[tunnelIndex].remoteNodeId);
@@ -756,7 +756,7 @@ static bool handleRequestTunnelFailure(uint8_t tunnelIndex, EmberAfPluginTunneli
       // We'll retry the request in the tunnel event handler so as to give the
       // tunnel(s) a chance to clean up.
       tunnels[tunnelIndex].state = REQUEST_PENDING_TUNNEL;
-      tunnels[tunnelIndex].timeoutMSec = halCommonGetInt32uMillisecondTick()
+      tunnels[tunnelIndex].timeoutMSec = halCommonGetInt64uMillisecondTick()
                                          + (MILLISECOND_TICKS_PER_SECOND * 5);
       emberEventControlSetActive(emberAfPluginCommsHubFunctionTunnelEventControl);
       return true;

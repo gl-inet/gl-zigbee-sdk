@@ -131,8 +131,8 @@ const uint8_t* ezspErrorString(uint8_t error)
 void ezspPrintElapsedTime(void)
 {
   static bool first = true;
-  static uint32_t base;
-  uint32_t now;
+  static uint64_t base;
+  uint64_t now;
 
   struct tm tmToday;
   time_t currentTime;
@@ -144,11 +144,11 @@ void ezspPrintElapsedTime(void)
   strftime(timeString, TIME_MAX, "%H:%M:%S", &tmToday);
 
   if (first) {
-    base = halCommonGetInt32uMillisecondTick();
+    base = halCommonGetInt64uMillisecondTick();
     first = false;
   }
-  now = halCommonGetInt32uMillisecondTick() - base;
-  ezspDebugPrintf("%s %s: %d.%03d ", dateString, timeString, now / 1000, now % 1000);
+  now = halCommonGetInt64uMillisecondTick() - base;
+  ezspDebugPrintf("%s %s: %ld.%03d ", dateString, timeString, now / 1000, now % 1000);
 }
 
 void ezspTraceEvent(const char *string)

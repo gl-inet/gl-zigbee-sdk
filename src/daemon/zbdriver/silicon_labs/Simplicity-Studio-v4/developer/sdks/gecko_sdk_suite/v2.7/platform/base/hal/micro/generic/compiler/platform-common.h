@@ -391,6 +391,13 @@ void halCommonMemPGMCopy(void* dest, const void PGM_NO_CONST *source, uint16_t b
   ((uint32_t) ((uint32_t)(newTime) - (uint32_t)(oldTime)))
 
 /**
+ * @brief Returns the elapsed time between two 64 bit values.
+ *   Result may not be valid if the time samples differ by more than 2147483647
+ */
+#define elapsedTimeInt64u(oldTime, newTime) \
+  ((uint64_t) ((uint64_t)(newTime) - (uint64_t)(oldTime)))
+
+ /**
  * @brief Returns true if t1 is greater than t2.  Can only account for 1 wrap
  * around of the variable before it is wrong.
  */
@@ -416,6 +423,16 @@ void halCommonMemPGMCopy(void* dest, const void PGM_NO_CONST *source, uint16_t b
 #define HALF_MAX_INT32U_VALUE (0x80000000UL)
 #define timeGTorEqualInt32u(t1, t2) \
   (elapsedTimeInt32u(t2, t1) <= (HALF_MAX_INT32U_VALUE))
+
+/**
+ * @brief Returns true if t1 is greater than t2.  Can only account for 1 wrap
+ * around of the variable before it is wrong.
+ */
+#define MAX_INT64U_VALUE      (0xFFFFFFFFFFFFFFFFUL)
+#define HALF_MAX_INT64U_VALUE (0x8000000000000000UL)
+#define timeGTorEqualInt64u(t1, t2) \
+  (elapsedTimeInt64u(t2, t1) <= (HALF_MAX_INT64U_VALUE))
+
 
 //@} \\END Time manipulation macros
 

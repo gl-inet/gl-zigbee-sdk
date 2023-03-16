@@ -89,7 +89,7 @@ static void addDeviceToJoiningList(EmberNodeId emberNodeId)
     if (joiningDeviceList[i].emberNodeId == EMBER_NULL_NODE_ID) {
       emberAfCorePrintln("Adding to queue at index %u", i);
       joiningDeviceList[i].emberNodeId = emberNodeId;
-      joiningDeviceList[i].timeStamp = halCommonGetInt32uMillisecondTick();
+      joiningDeviceList[i].timeStamp = halCommonGetInt64uMillisecondTick();
       emberAfNetworkEventControlSetDelayMS(emberAfPluginPermitJoinManagerTimeoutNetworkEventControls,
                                            EMBER_AF_PLUGIN_PERMIT_JOIN_MANAGER_DEVICE_ANNOUNCE_TIMEOUT);
       return;
@@ -166,7 +166,7 @@ void emberAfPluginPermitJoinManagerTimeoutNetworkEventHandler(void)
   static int j = 0;
   for (i = 0; i < EMBER_AF_PLUGIN_PERMIT_JOIN_MANAGER_JOINING_DEVICES_QUEUE_LENGTH; i++) {
     if (joiningDeviceList[i].emberNodeId != EMBER_NULL_NODE_ID
-        && (elapsedTimeInt32u(joiningDeviceList[i].timeStamp, halCommonGetInt32uMillisecondTick())
+        && (elapsedTimeInt32u(joiningDeviceList[i].timeStamp, halCommonGetInt64uMillisecondTick())
             >= EMBER_AF_PLUGIN_PERMIT_JOIN_MANAGER_JOINING_DEVICES_QUEUE_LENGTH)) {
       j++;
       //fprintf(stderr,"\r\nNo device announce yet time, sending to %u count %u \r\n",joiningDeviceList[i].emberNodeId,j);

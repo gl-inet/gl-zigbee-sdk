@@ -1291,7 +1291,7 @@ bool emAfGreenPowerIsGpAddrUsed(EmberAfGreenPowerDuplicateFilter * filter,
 {
   uint32_t * expirationTimes;
   uint8_t i;
-  uint32_t curTime = halCommonGetInt32uMillisecondTick();
+  uint64_t curTime = halCommonGetInt64uMillisecondTick();
 
   if (index >= EMBER_AF_PLUGIN_GREEN_POWER_CLIENT_MAX_ADDR_ENTRIES) {
     return true;
@@ -1314,7 +1314,7 @@ uint32_t emAfGreenPowerFindNextExpirationTime(EmberAfGreenPowerDuplicateFilter *
   uint32_t expirationTime = MAX_INT32U_VALUE;
   uint8_t addrIndex;
   uint8_t entryIndex;
-  uint32_t curTime = halCommonGetInt32uMillisecondTick();
+  uint64_t curTime = halCommonGetInt64uMillisecondTick();
   for (addrIndex = 0;
        addrIndex < EMBER_AF_PLUGIN_GREEN_POWER_CLIENT_MAX_ADDR_ENTRIES;
        addrIndex++) {
@@ -1365,7 +1365,7 @@ bool emAfGreenPowerAddRandomMacSeqNum(EmberAfGreenPowerDuplicateFilter * filter,
   uint8_t * seqNumList = NULL;
   uint32_t * expirationTimeList = NULL;
   uint8_t i;
-  uint32_t curTime = halCommonGetInt32uMillisecondTick();
+  uint64_t curTime = halCommonGetInt64uMillisecondTick();
   uint8_t entryIndex;
 
   // addrIndex must be less than the EMBER_AF_PLUGIN_GREEN_POWER_CLIENT_MAX_SEQ_NUM_ENTRIES_PER_ADDR

@@ -3,59 +3,51 @@
 . /lib/functions.sh
 
 board=$(board_name)
-boardname="${board#*-}"
-[ -n "$boardname" ] || {
-        loger "Unsupported model (model not in support-list)"
-        echo ""
-        return
-}
-
-case "$boardname" in
-        ar300m-nor|\
-        ar300m-nand)
+case "$board" in
+        *ar300m*)
                 model=ar300m
                 ;;
-        ar750s-nor|\
-        ar750s-nor-nand)
+        *ar750s*)
                 model=ar750s
                 ;;
-        e750-nor|\
-        e750-nor-nand)
+        *e750*)
                 model=e750
                 ;;
-        x750-nor|\
-        x750-nor-nand)
+        *x750*)
                 model=x750
                 ;;
-        x300b-nor|\
-        x300b-nor-nand)
+        *x300b*)
                 model=x300b
                 ;;
-        xe300-iot|\
-        xe300-nor|\
-        xe300-nor-nand)
+        *xe300*)
                 model=xe300
                 ;;
-        x1200-nor|\
-        x1200-nor-nand)
+        *x1200*)
                 model=x1200
                 ;;
-        s200-nor)
-                model=s200
+        *s200-nor-nand)
+                model=s200-nor-nand
+                ;;         
+        *s200-nor)
+                model=s200-nor
+                ;;        
+        *x3000*)
+                model=x3000
                 ;;
         *)
-                model=$boardname
+                model=$board
                 ;;
 esac
 echo $model
+
 
 if [ $model == s1300 ]; then
     uci set zigbee.spi=interface
     uci set zigbee.spi.spi_device='/dev/spidev1.0'
     [ `grep "DISTRIB_TARGET" /etc/openwrt_release|cut -b 17-31` = "ipq40xx/generic" ] && {
-        echo 460 > /sys/class/gpio/export
-        echo out > /sys/class/gpio/gpio460/direction
-        echo 1 > /sys/class/gpio/gpio460/value
+        echo 460 > /sys/class/gpio/export 2>/dev/null
+        echo out > /sys/class/gpio/gpio460/direction 2>/dev/null
+        echo 1 > /sys/class/gpio/gpio460/value 2>/dev/null
     }
     [ -n "$(ls -l /sys/class/gpio/gpiochip412 2>/dev/null)" ] && S1300_CS_GPIO='457' || S1300_CS_GPIO='45'
     [ -n "$(ls -l /sys/class/gpio/gpiochip412 2>/dev/null)" ] && S1300_INT_GPIO='454' || S1300_INT_GPIO='42'
@@ -80,8 +72,8 @@ elif [ $model == b2200 ]; then
     uci set zigbee.spi.spi_wake_io='48'
     uci commit zigbee
 elif [ $model == x750 ]; then
-	echo 1 > /sys/class/gpio/export
-	echo 1 > /sys/class/gpio/gpio1/value
+	echo 1 > /sys/class/gpio/export 2>/dev/null
+	echo 1 > /sys/class/gpio/gpio1/value 2>/dev/null
     uci set zigbee.uart=interface
     uci set zigbee.uart.port='/dev/ttyS0'
     uci set zigbee.uart.baudrate='115200'
@@ -89,9 +81,9 @@ elif [ $model == x750 ]; then
 	uci set zigbee.uart.reset_method='soft'
     uci commit zigbee
 elif [ $model == mt300n-v2 ]; then
-	echo 5 > /sys/class/gpio/export
-	echo out > /sys/class/gpio/gpio5/direction
-	echo 1 > /sys/class/gpio/gpio5/value
+	echo 5 > /sys/class/gpio/export 2>/dev/null
+	echo out > /sys/class/gpio/gpio5/direction 2>/dev/null
+	echo 1 > /sys/class/gpio/gpio5/value 2>/dev/null
     uci set zigbee.uart=interface
     uci set zigbee.uart.port='/dev/ttyS1'
     uci set zigbee.uart.baudrate='115200'
@@ -99,18 +91,27 @@ elif [ $model == mt300n-v2 ]; then
 	uci set zigbee.uart.reset_method='soft'
     uci commit zigbee
 elif [ $model == x300b ]; then
-	echo 1 > /sys/class/gpio/gpio16/value
+	echo 1 > /sys/class/gpio/gpio16/value 2>/dev/null
     uci set zigbee.uart=interface
     uci set zigbee.uart.port='/dev/ttyS0'
     uci set zigbee.uart.baudrate='115200'
     uci set zigbee.uart.flow_control='n'
 	uci set zigbee.uart.reset_method='soft'
     uci commit zigbee
-elif [ $model == s200 ]; then
-	echo 1 > /sys/class/gpio/export
-	echo 1 > /sys/class/gpio/gpio1/value
+elif [ $model == s200-nor ]; then
+	echo 1 > /sys/class/gpio/export 2>/dev/null
+	echo 1 > /sys/class/gpio/gpio1/value 2>/dev/null
     uci set zigbee.uart=interface
     uci set zigbee.uart.port='/dev/ttyS0'
+    uci set zigbee.uart.baudrate='115200'
+    uci set zigbee.uart.flow_control='n'
+	uci set zigbee.uart.reset_method='soft'
+    uci commit zigbee
+elif [ $model == s200-nor-nand ]; then
+	echo 1 > /sys/class/gpio/export 2>/dev/null
+	echo 1 > /sys/class/gpio/gpio1/value 2>/dev/null
+    uci set zigbee.uart=interface
+    uci set zigbee.uart.port='/dev/ttyCH343USB1'
     uci set zigbee.uart.baudrate='115200'
     uci set zigbee.uart.flow_control='n'
 	uci set zigbee.uart.reset_method='soft'

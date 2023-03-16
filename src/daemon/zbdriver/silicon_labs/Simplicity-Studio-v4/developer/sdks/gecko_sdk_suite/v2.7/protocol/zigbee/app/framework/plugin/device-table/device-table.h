@@ -34,7 +34,7 @@ enum {
 typedef struct {
   uint8_t     endpoint;
   uint16_t    deviceId;
-  uint32_t    lastMsgTimestamp;
+  uint64_t    lastMsgTimestamp;
   EmberNodeId nodeId;
   EmberEUI64  eui64;
   EmberAfPluginDeviceTableDeviceState state;

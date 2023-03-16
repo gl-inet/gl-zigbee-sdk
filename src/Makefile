@@ -92,6 +92,7 @@ INCLUD_PATH += \
 	-I./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/developer/sdks/gecko_sdk_suite/v2.7/protocol/zigbee/app/framework/../util/zigbee-framework \
 	-I./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/developer/sdks/gecko_sdk_suite/v2.7/protocol/zigbee/app/framework/cli \
 	-I./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/developer/sdks/gecko_sdk_suite/v2.7/protocol/zigbee/app/framework/include \
+	-I./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/developer/sdks/gecko_sdk_suite/v2.7/protocol/zigbee/app/framework/plugin/* \
 	-I./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/developer/sdks/gecko_sdk_suite/v2.7/protocol/zigbee/app/framework/security \
 	-I./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/developer/sdks/gecko_sdk_suite/v2.7/protocol/zigbee/app/framework/util \
 	-I./daemon/zbdriver/silicon_labs/Simplicity-Studio-v4/code/1/2/Z3GatewayHost-768/ \
@@ -344,3 +345,4 @@ ${OBJ}:%.o:%.c
 clean:
 	rm -rf ${LIB_DYNAMIC} ${LIB_STATIC} zbtool zbdaemon demoProject
 	find . -name "*.o" -exec rm -vf {} \;
+	find . -name "*.d" -exec rm -vf {} \;

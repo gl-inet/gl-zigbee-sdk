@@ -115,7 +115,7 @@ uint8_t halGetEm2xxResetInfo(void);
   #error no platform or micro defined
 #endif
 
-// the number of ticks (as returned from halCommonGetInt32uMillisecondTick)
+// the number of ticks (as returned from halCommonGetInt64uMillisecondTick)
 // that represent an actual second. This can vary on different platforms.
 // It must be defined by the host system.
 #ifndef MILLISECOND_TICKS_PER_SECOND

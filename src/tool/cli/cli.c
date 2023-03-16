@@ -57,13 +57,13 @@ static void print_dev_manage(glzb_desc_s* dev)
 			break;
 		case GL_STANDARD_SECURITY_UNSECURED_REJOIN:
 			printf("unsecured rejoin\n");
-		
+			break;
 		default:
 			printf("error\n");
 			break;
 	}
 	printf("  coordinator decision: ");
-	switch (dev->status)
+	switch (dev->decision)
 	{
 		case GL_USE_PRECONFIGURED_KEY:
 			printf("Allow the node to join. The node has the key. \n");
@@ -76,7 +76,7 @@ static void print_dev_manage(glzb_desc_s* dev)
 			break;
 		case GL_NO_ACTION:
 			printf("Take no action.\n");
-		
+			break;
 		default:
 			printf("error\n");
 			break;
@@ -205,6 +205,88 @@ int cmd_on_off(int argc, char** argv)
 	return 0;
 }
 
+int cmd_lock_unlock(int argc, char** argv)
+{
+	if(argc != 5)
+	{
+		printf("argument error!\n");
+		return -1;
+	}
+
+	glzb_aps_s zcl_p;
+	memset(&zcl_p, 0, sizeof(glzb_aps_s));
+
+	int tmp_short_id = atoi(argv[2]);
+	int tmp_cmd_id = atoi(argv[3]);
+	int tmp_frame_type = atoi(argv[4]);
+	// printf("debug: short id 0x%04x cmd id 0x%02x frame_type %d\n", tmp_short_id, tmp_cmd_id, tmp_frame_type);
+
+	zcl_p.short_id = (uint16_t)tmp_short_id;
+	strcpy(zcl_p.mac, NULL_EUI64);
+	zcl_p.mac[16] = '\0';
+	zcl_p.profile_id = GL_ZHA;
+	zcl_p.cluster_id = GL_ZCL_DOOR_LOCK_CLUSTER_ID;
+	zcl_p.src_endpoint = 0x01;
+	zcl_p.dst_endpoint = 0x01;
+	zcl_p.cmd_type = GL_SPECIFIC_ZCL_CMD;
+	zcl_p.cmd_id = (uint8_t)tmp_cmd_id;
+	zcl_p.frame_type = (uint8_t)tmp_frame_type;
+	zcl_p.msg_length = 0;
+	zcl_p.message = NULL;
+	
+	glzb_send_zcl_cmd(&zcl_p);
+	printf("send zcl cmd!\n");
+	return 0;
+}
+
+int cmd_tuya(int argc, char** argv)
+{
+	if(argc != 7)
+	{
+		printf("argument error!\n");
+		return -1;
+	}
+
+	glzb_aps_s zcl_p;
+	memset(&zcl_p, 0, sizeof(glzb_aps_s));
+
+	int tmp_short_id = atoi(argv[2]);
+	int tmp_cmd_id = 0;
+	int tmp_frame_type = 17;
+	int tmp_dp_id = atoi(argv[3]);
+	int tmp_data_type = atoi(argv[4]);
+	int tmp_data_len = atoi(argv[5]);
+	// printf("debug: short id 0x%04x cmd id 0x%02x frame_type %d\n", tmp_short_id, tmp_cmd_id, tmp_frame_type);
+
+	zcl_p.short_id = (uint16_t)tmp_short_id;
+	strcpy(zcl_p.mac, NULL_EUI64);
+	zcl_p.mac[16] = '\0';
+	zcl_p.profile_id = GL_ZHA;
+	zcl_p.cluster_id = GL_ZCL_TUYA_ALARM_CLUSTER_ID;
+	zcl_p.src_endpoint = 0x01;
+	zcl_p.dst_endpoint = 0x01;
+	zcl_p.cmd_type = GL_SPECIFIC_ZCL_CMD;
+	zcl_p.cmd_id = (uint8_t)tmp_cmd_id;
+	zcl_p.frame_type = (uint8_t)tmp_frame_type;
+	if (argc > 5)
+	{
+		zcl_p.msg_length = tmp_data_len*2 + 13;
+		zcl_p.message = (char*)malloc((zcl_p.msg_length + 1) * sizeof(char));
+
+		snprintf(zcl_p.message, zcl_p.msg_length, "0000%02x%02x%04x%s", tmp_dp_id, tmp_data_type, tmp_data_len, argv[6]);
+	}
+	else
+	{
+		zcl_p.msg_length = 0;
+		zcl_p.message = NULL;
+	}
+	
+	glzb_send_zcl_cmd(&zcl_p);
+	printf("send zcl cmd!\n");
+	
+	return 0;
+}
+
 int cmd_global_zcl(int argc, char** argv)
 {
 	glzb_aps_s zcl_p;
@@ -218,28 +300,29 @@ int cmd_global_zcl(int argc, char** argv)
 	int tmp_cluster_id = atoi(argv[3]);
 	int tmp_cmd_id = atoi(argv[4]);
 	int tmp_frame_type = atoi(argv[5]);
+	int tmp_dst_endpoint = atoi(argv[6]);
 
 	// printf("debug: short id 0x%04x cmd id 0x%02x frame_type %d\n", tmp_short_id, tmp_cmd_id, tmp_frame_type);
 
-	if(tmp_cmd_id == READ_ATTRIBUTES)
+	// if(tmp_cmd_id == READ_ATTRIBUTES)
 	{
 		zcl_p.short_id = (uint16_t)tmp_short_id;
 		zcl_p.profile_id = GL_ZHA;
 		// zcl_p.cluster_id = (tmp_cluster_id&0xff)<<8 + (tmp_cluster_id>>8);
 		zcl_p.cluster_id = (uint16_t)tmp_cluster_id;
 		zcl_p.src_endpoint = 0x01;
-		zcl_p.dst_endpoint = 0x01;
+		zcl_p.dst_endpoint = tmp_dst_endpoint;
 		zcl_p.cmd_id = (uint8_t)tmp_cmd_id;
 		zcl_p.frame_type = (uint8_t)tmp_frame_type;
 		
-		char* tmp_data = argv[6];
+		char* tmp_data = argv[7];
 		// printf("tmp_data[%d]: %s\n", strlen(tmp_data), tmp_data);
 		zcl_p.msg_length = strlen(tmp_data);
 		zcl_p.message = (char*)malloc((zcl_p.msg_length+1)*sizeof(char));
 		strcpy(zcl_p.message, tmp_data);
-	}else{
-		printf("cmd id not support!\n");
-		return 0;
+	// }else{
+	// 	printf("cmd id not support!\n");
+	// 	return 0;
 	}
 
 	glzb_send_zcl_cmd(&zcl_p);
@@ -422,6 +505,35 @@ int cmd_color_control(int argc, char** argv)
 		msg[2] = 0x0f;
 		msg[3] = 0x00;
 		uint8array2str(msg, str, 4);
+	}else if(tmp_cmd_id == 6){
+		if(argc != 7)
+		{
+			printf("argument error!\n");
+			return -1;
+		}
+		int color_hue = atoi(argv[4]);
+		int color_sat = atoi(argv[5]);
+		int tmp_frame_type = atoi(argv[6]);
+		// printf("debug: short id 0x%04x cmd id 0x%02x frame_type %d\n", tmp_short_id, tmp_cmd_id, tmp_frame_type);
+
+		zcl_p.short_id = (uint16_t)tmp_short_id;
+		// strcpy(zcl_p.mac, argv[2]);
+		// zcl_p.mac[16] = '\0';
+		zcl_p.profile_id = GL_ZHA;
+		zcl_p.cluster_id = GL_ZCL_COLOR_CONTROL_CLUSTER_ID;
+		zcl_p.src_endpoint = 0x01;
+		zcl_p.dst_endpoint = 0x01;
+		zcl_p.cmd_type = GL_SPECIFIC_ZCL_CMD;
+		zcl_p.cmd_id = (uint8_t)tmp_cmd_id;
+		zcl_p.frame_type = (uint8_t)tmp_frame_type;
+		zcl_p.msg_length = 12;
+		uint8_t msg[5];
+		str = (char*)malloc(5*sizeof(char));
+		msg[0] = (uint8_t)(color_hue & 0xff);
+		msg[1] = (uint8_t)(color_sat & 0xff);
+		msg[2] = 0x0f;
+		msg[3] = 0x00;
+		uint8array2str(msg, str, 4);
 	}
 
 	
@@ -444,24 +556,25 @@ int cmd_group(int argc, char** argv)
 
 	char *str = NULL;
 	int tmp_short_id = atoi(argv[2]);
+	int tmp_dst_endpoint = atoi(argv[3]);
 	strcpy(zcl_p.mac, NULL_EUI64);
 	zcl_p.mac[16] = '\0';
-	int tmp_cmd_id = atoi(argv[3]);
+	int tmp_cmd_id = atoi(argv[4]);
 
-	int str_len = strlen(argv[4]);
-	int tmp_frame_type = atoi(argv[5]);
+	int str_len = strlen(argv[5]);
+	int tmp_frame_type = atoi(argv[6]);
 
 	zcl_p.short_id = (uint16_t)tmp_short_id;
 	zcl_p.profile_id = GL_ZHA;
 	zcl_p.cluster_id = GL_ZCL_GROUPS_CLUSTER_ID;
 	zcl_p.src_endpoint = 0x01;
-	zcl_p.dst_endpoint = 0x01;
+	zcl_p.dst_endpoint = tmp_dst_endpoint;
 	zcl_p.cmd_type = GL_SPECIFIC_ZCL_CMD;
 	zcl_p.cmd_id = (uint8_t)tmp_cmd_id;
 	zcl_p.frame_type = (uint8_t)tmp_frame_type;
 	zcl_p.msg_length = str_len;
 	str = (char*)malloc(str_len*sizeof(char));
-	strcpy(str, argv[4]);
+	strcpy(str, argv[5]);
 	zcl_p.message = str;
 
 	glzb_send_zcl_cmd(&zcl_p);
@@ -480,24 +593,26 @@ int cmd_scene(int argc, char** argv)
 
 	char *str = NULL;
 	int tmp_short_id = atoi(argv[2]);
+	int tmp_dst_endpoint = atoi(argv[3]);
+	
 	strcpy(zcl_p.mac, NULL_EUI64);
 	zcl_p.mac[16] = '\0';
-	int tmp_cmd_id = atoi(argv[3]);
-
-	int str_len = strlen(argv[4]);
-	int tmp_frame_type = atoi(argv[5]);
+	int tmp_cmd_id = atoi(argv[4]);
+	
+	int str_len = strlen(argv[5]);
+	int tmp_frame_type = atoi(argv[6]);
 
 	zcl_p.short_id = (uint16_t)tmp_short_id;
 	zcl_p.profile_id = GL_ZHA;
 	zcl_p.cluster_id = GL_ZCL_SCENES_CLUSTER_ID;
 	zcl_p.src_endpoint = 0x01;
-	zcl_p.dst_endpoint = 0x01;
+	zcl_p.dst_endpoint = tmp_dst_endpoint;
 	zcl_p.cmd_type = GL_SPECIFIC_ZCL_CMD;
 	zcl_p.cmd_id = (uint8_t)tmp_cmd_id;
 	zcl_p.frame_type = (uint8_t)tmp_frame_type;
 	zcl_p.msg_length = str_len;
 	str = (char*)malloc(str_len*sizeof(char));
-	strcpy(str, argv[4]);
+	strcpy(str, argv[5]);
 	zcl_p.message = str;
 
 	glzb_send_zcl_cmd(&zcl_p);
@@ -1170,6 +1285,8 @@ static struct {
 	{"zdo-request",				cmd_zdo_request,		 			"Create and send a zdo request"						},
 	{"global-zcl",				cmd_global_zcl, 					"Create and send a global zcl cmd"					},
 	{"zcl-on/off",				cmd_on_off, 						"Create and send a on-off cluster cmd"				},
+	{"zcl-lock/unlock",			cmd_lock_unlock, 					"Create and send a lock-unlock cluster cmd"			},
+	{"zcl-tuya",				cmd_tuya, 							"Create and send a lock-unlock cluster cmd"			},
 	{"zcl-window_covering",		cmd_window_covering, 				"Create and send a window_covering cluster cmd"		},
 	{"zcl-level_control",		cmd_level_control, 					"Create and send a level_control cluster cmd"		},
 	{"zcl-color_control",		cmd_color_control, 					"Create and send a color_control cluster cmd"		},
@@ -1307,38 +1424,42 @@ static void str2uint16_array(char* str, uint16_t* array, int len)
 
 static void str2uint8_array(char* str, uint8_t* array, int len)
 {
-	int i, j; 
-    int num = 0;
+	int i, j;
+	int num = 0;
 	uint8_t tmp;
-    char* p = str;
-    for(i = 0; i < len; i++)
-    {
-        tmp = 0;
-        for(j = 0; j < 2; j++)
-        {
-            if((*p <= 0x39)&&(*p >= 0x30))
-            {
-                tmp = tmp*16 + *p - '0';
-                p++;
-            }
-            else if((*p <= 0x46)&&(*p >= 0x41))
-            {
-                tmp = tmp*16 + *p - 'A' + 10;
-                p++;
-            }
-            else if((*p <= 0x66)&&(*p >= 0x61))
-            {
-                tmp = tmp*16 + *p - 'a' +10;
-                p++;
-            }
-            else
-            {
-                printf("ERROR: parameter error!\n");
-                return;
-            }
-        }
-		*(array+i) = tmp;
+	char *p = str;
+	for (i = 0; i < len; i++)
+	{
+		tmp = 0;		
+		for (j = 0; j < 2; j++)
+		{
+			if (*p == ':')
+			{
+				p++;
+			}
+			if ((*p <= 0x39) && (*p >= 0x30))
+			{
+				tmp = tmp * 16 + *p - '0';
+				p++;
+			}
+			else if ((*p <= 0x46) && (*p >= 0x41))
+			{
+				tmp = tmp * 16 + *p - 'A' + 10;
+				p++;
+			}
+			else if ((*p <= 0x66) && (*p >= 0x61))
+			{
+				tmp = tmp * 16 + *p - 'a' + 10;
+				p++;
+			}
+			// else
+			// {
+			// 	// printf("ERROR: parameter error!char=%c\n",*p);
+			// 	// return;
+			// 	continue;
+			// }
+		}
+		*(array + i) = tmp;
 	}
-
 	return;
 }

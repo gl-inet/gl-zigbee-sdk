@@ -29,7 +29,7 @@
 
 typedef struct {
   bool inUse;
-  uint32_t startTime;
+  uint64_t startTime;
   uint8_t seqn;
 } InflightInfo;
 
@@ -45,7 +45,7 @@ static struct {
   uint8_t maxInFlight;
   uint8_t currentInFlight;
   uint16_t txIntervalMs;
-  uint32_t startTime;
+  uint64_t startTime;
   uint32_t runTime;
   uint32_t testTimeout;
   uint32_t minSendTimeMs;
@@ -299,7 +299,7 @@ void emAfPluginThroughputCliStartTest(void)
   testParams.currentInFlight = 0;
   testParams.messageRunningCount = 0;
   testParams.messageSuccessCount = 0;
-  testParams.startTime = halCommonGetInt32uMillisecondTick();
+  testParams.startTime = halCommonGetInt64uMillisecondTick();
   testParams.runTime = 0;
   testParams.minSendTimeMs = 0xFFFFFFFF;
   testParams.maxSendTimeMs = 0;
@@ -348,7 +348,7 @@ bool emberAfMessageSentCallback(EmberOutgoingMessageType type,
     for (i = 0; i < ZIGBEE_TX_TEST_MAX_INFLIGHT; i++) {
       if (testParams.inflightInfoTable[i].seqn == apsFrame->sequence) {
         testParams.inflightInfoTable[i].inUse = false;
-        packetSendTimeMs = elapsedTimeInt32u(testParams.inflightInfoTable[i].startTime, halCommonGetInt32uMillisecondTick());
+        packetSendTimeMs = elapsedTimeInt64u(testParams.inflightInfoTable[i].startTime, halCommonGetInt64uMillisecondTick());
         break;
       }
     }
@@ -374,7 +374,7 @@ bool emberAfMessageSentCallback(EmberOutgoingMessageType type,
         && testParams.messageRunningCount
         == testParams.messageTotalCount) {
       emberAfCorePrintln("Test Complete");
-      testParams.runTime = elapsedTimeInt32u(testParams.startTime, halCommonGetInt32uMillisecondTick());
+      testParams.runTime = elapsedTimeInt64u(testParams.startTime, halCommonGetInt64uMillisecondTick());
       emAfPluginThroughputCliPrintResult();
     }
     return true;
@@ -391,8 +391,8 @@ void emberAfPluginThroughputPacketSendEventHandler(void)
   uint32_t txIntervalAdjustmentMs;
   uint32_t adjustedTxIntervalMs;
 
-  uint32_t currentTimeMs = halCommonGetInt32uMillisecondTick();
-  uint32_t totalRunTimeMs = elapsedTimeInt32u(testParams.startTime, currentTimeMs);
+  uint64_t currentTimeMs = halCommonGetInt64uMillisecondTick();
+  uint32_t totalRunTimeMs = elapsedTimeInt64u(testParams.startTime, currentTimeMs);
   if ((totalRunTimeMs >= testParams.testTimeout)
       && (testParams.testTimeout > 0)) {
     emberAfCorePrintln("Timeout Exceeded");
@@ -432,7 +432,7 @@ void emberAfPluginThroughputPacketSendEventHandler(void)
         testParams.inflightInfoTable[i].inUse = true;
         testParams.inflightInfoTable[i].seqn = apsFrame.sequence;
         testParams.inflightInfoTable[i].startTime =
-          halCommonGetInt32uMillisecondTick();
+          halCommonGetInt64uMillisecondTick();
         break;
       }
     }
@@ -446,7 +446,7 @@ void emberAfPluginThroughputPacketSendEventHandler(void)
   } else {
     // txIntervalAdjustment subtracts out time spent in this function from the send loop timer,
     // which makes a significant difference for host applications using ncp-uart
-    txIntervalAdjustmentMs = elapsedTimeInt32u(currentTimeMs, halCommonGetInt32uMillisecondTick());
+    txIntervalAdjustmentMs = elapsedTimeInt64u(currentTimeMs, halCommonGetInt64uMillisecondTick());
     if (txIntervalAdjustmentMs >= testParams.txIntervalMs) {
       adjustedTxIntervalMs = 0;
     } else {
@@ -463,7 +463,7 @@ void emAfPluginThroughputCliPrintResult(void)
 
   if (isRunning) {
     emberAfCorePrintln("Test still in progress");
-    testParams.runTime = elapsedTimeInt32u(testParams.startTime, halCommonGetInt32uMillisecondTick());
+    testParams.runTime = elapsedTimeInt64u(testParams.startTime, halCommonGetInt64uMillisecondTick());
   }
   uint64_t appThroughput = (testParams.messageSuccessCount
                             * testParams.payloadLength);

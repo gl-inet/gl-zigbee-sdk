@@ -266,9 +266,9 @@ static EmberStatus sendPacket(uint8_t *buffer, uint16_t numPackets)
     // the receiver can't keep up with the sender if the sender doesn't use
     // any delay. This helps prevent false failures - devices can hear fine
     // but they can't keep up with the sender.
-    now = sendTime = halCommonGetInt32uMillisecondTick();
+    now = sendTime = halCommonGetInt64uMillisecondTick();
     while ((uint16_t)(now - sendTime) < 10) {
-      now = halCommonGetInt32uMillisecondTick();
+      now = halCommonGetInt64uMillisecondTick();
     }
 
     // print an error on failure

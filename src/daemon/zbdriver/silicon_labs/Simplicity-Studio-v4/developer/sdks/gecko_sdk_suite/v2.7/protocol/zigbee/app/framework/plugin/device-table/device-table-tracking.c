@@ -53,7 +53,7 @@ static void serviceReturn(const EmberAfServiceDiscoveryResult* result)
 bool emAfPluginDeviceTablePreCommandReceivedCallback(EmberAfClusterCommand* cmd)
 {
   uint16_t nodeId = cmd->source;
-  uint32_t currentTimestamp = halCommonGetInt32uMillisecondTick();
+  uint64_t currentTimestamp = halCommonGetInt64uMillisecondTick();
   uint32_t index = emAfDeviceTableFindFirstEndpointNodeId(nodeId);
   EmberAfPluginDeviceTableEntry *deviceTable = emberAfDeviceTablePointer();
 

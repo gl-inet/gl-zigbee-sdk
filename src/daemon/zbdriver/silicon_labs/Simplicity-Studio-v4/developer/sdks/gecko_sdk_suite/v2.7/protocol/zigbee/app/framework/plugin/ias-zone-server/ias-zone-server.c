@@ -54,7 +54,7 @@
 typedef struct {
   uint8_t endpoint;
   uint16_t status;
-  uint32_t eventTimeMs;
+  uint64_t eventTimeMs;
 } IasZoneStatusQueueEntry;
 
 typedef struct {
@@ -378,7 +378,7 @@ EmberStatus emberAfPluginIasZoneServerUpdateZoneStatus(
   IasZoneStatusQueueEntry newBufferEntry;
   newBufferEntry.endpoint = endpoint;
   newBufferEntry.status = newStatus;
-  newBufferEntry.eventTimeMs = halCommonGetInt32uMillisecondTick();
+  newBufferEntry.eventTimeMs = halCommonGetInt64uMillisecondTick();
 #endif
   EmberStatus sendStatus;
 
@@ -917,7 +917,7 @@ static int16_t popFromBuffer(IasZoneStatusQueue *ring,
 
 uint16_t computeElapsedTimeQs(IasZoneStatusQueueEntry *entry)
 {
-  uint32_t currentTimeMs = halCommonGetInt32uMillisecondTick();
+  uint64_t currentTimeMs = halCommonGetInt64uMillisecondTick();
   int64_t deltaTimeMs = currentTimeMs - entry->eventTimeMs;
 
   if (deltaTimeMs < 0) {

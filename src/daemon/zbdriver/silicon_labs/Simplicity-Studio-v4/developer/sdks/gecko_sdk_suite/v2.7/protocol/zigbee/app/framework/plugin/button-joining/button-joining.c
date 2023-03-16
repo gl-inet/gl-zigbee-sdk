@@ -122,7 +122,7 @@ void emberAfPluginButtonJoiningPressButton(uint8_t button)
 static bool buttonPress(uint8_t button, uint8_t state)
 {
   // ISR CONTEXT!!!
-  static uint32_t timeMs;
+  static uint64_t timeMs;
   EmberEventControl* event;
 
   if (button == BUTTON0) {
@@ -134,9 +134,9 @@ static bool buttonPress(uint8_t button, uint8_t state)
   }
   if (state == BUTTON_PRESSED) {
     buttonPressDurationMs = 0;
-    timeMs = halCommonGetInt32uMillisecondTick();
+    timeMs = halCommonGetInt64uMillisecondTick();
   } else {
-    buttonPressDurationMs = elapsedTimeInt32u(timeMs, halCommonGetInt32uMillisecondTick());
+    buttonPressDurationMs = elapsedTimeInt64u(timeMs, halCommonGetInt64uMillisecondTick());
     emberEventControlSetActive(*event);
   }
 

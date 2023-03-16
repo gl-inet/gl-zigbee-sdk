@@ -15,15 +15,27 @@
  *
  ******************************************************************************/
 #include <sys/time.h>
+#include <time.h>
+#include <stdio.h>
 
 #include PLATFORM_HEADER
+
+uint64_t halCommonGetInt64uMillisecondTick(void)
+{
+  struct timespec ts;
+	uint64_t now;
+  
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+  now = ((uint64_t)ts.tv_sec * 1000) + (ts.tv_nsec / 1000000);
+  return now;
+}
 
 uint32_t halCommonGetInt32uMillisecondTick(void)
 {
   struct timeval tv;
   uint32_t now;
-
-  gettimeofday(&tv, NULL);
+  
+  int ret = gettimeofday(&tv, NULL);
   now = (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
   return now;
 }

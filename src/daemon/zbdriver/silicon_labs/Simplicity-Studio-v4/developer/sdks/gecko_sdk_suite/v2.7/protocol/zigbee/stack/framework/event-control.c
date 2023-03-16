@@ -31,10 +31,10 @@ static uint8_t emActiveTaskCount = 0;
 #ifdef DEBUG_EVENTS
 void printEvent(EmberEventControl *event, char *txt)
 {
-  fprintf(stderr, "%s: ptr=%p now=%d time=%d stat=%d next=%d\n",
+  fprintf(stderr, "%s: ptr=%p now=%d time=%ld stat=%ld next=%ld\n",
           txt,
           event,
-          halCommonGetInt32uMillisecondTick(),
+          halCommonGetInt64uMillisecondTick(),
           event->timeToExecute,
           event->status,
           emTasks[event->taskid].nextEventTime);
@@ -52,12 +52,12 @@ void printEvent(EmberEventControl *event, char *txt)
 static void emTrackNextEvent(EmberEventControl *event)
 {
   EmberTaskId taskid = event->taskid;
-  uint32_t eventTime = event->timeToExecute;
+  uint64_t eventTime = event->timeToExecute;
   // If an app doesn't support idling, the taskid will just be initialized to
   //   zero.  This often means that the nextEventTime for task 0 will be wrong,
   //   but that is ok since the app likely isn't trying to idle stuff anyway...
   ATOMIC(
-    if (timeGTorEqualInt32u(emTasks[taskid].nextEventTime, eventTime)) {
+    if (timeGTorEqualInt64u(emTasks[taskid].nextEventTime, eventTime)) {
     emTasks[taskid].nextEventTime = eventTime;
   }
     )
@@ -66,7 +66,7 @@ static void emTrackNextEvent(EmberEventControl *event)
 
 void emEventControlSetActive(EmberEventControl *event)
 {
-  event->timeToExecute = halCommonGetInt32uMillisecondTick();  // "now"
+  event->timeToExecute = halCommonGetInt64uMillisecondTick();  // "now"
   event->status = EMBER_EVENT_ZERO_DELAY;
   emTrackNextEvent(event);
   PRINT_EVENT(event, "active");
@@ -74,7 +74,7 @@ void emEventControlSetActive(EmberEventControl *event)
 
 void emEventControlSetDelayMS(EmberEventControl*event, uint32_t delay)
 {
-  event->timeToExecute = halCommonGetInt32uMillisecondTick() + delay;
+  event->timeToExecute = halCommonGetInt64uMillisecondTick() + delay;
   event->status = EMBER_EVENT_MS_TIME;
   emTrackNextEvent(event);
   PRINT_EVENT(event, "ms set");
@@ -89,11 +89,11 @@ uint32_t emEventControlGetRemainingMS(EmberEventControl *event)
       // NOTE: timeToExecute is now always stored in Milliseconds.  The status
       //   field only records the units for backwards compatibility with the
       //   EZSP protocol EZSP_GET_TIMER which returns a 16 bit value and units
-      uint32_t nowMS = halCommonGetInt32uMillisecondTick();
-      if (timeGTorEqualInt32u(nowMS, event->timeToExecute)) {
+      uint64_t nowMS = halCommonGetInt64uMillisecondTick();
+      if (timeGTorEqualInt64u(nowMS, event->timeToExecute)) {
         return 0;  // already pending
       } else {
-        return elapsedTimeInt32u(nowMS, event->timeToExecute);
+        return elapsedTimeInt64u(nowMS, event->timeToExecute);
       }
     }
   }
@@ -105,18 +105,18 @@ uint32_t emEventControlGetRemainingMS(EmberEventControl *event)
 //   called, it is possible that this may return a value sooner than the
 //   next real event.  Generally this is safe- just means that an extra
 //   call to emberRunTask may end up being made when not necessary.
-static uint32_t emTaskMsUntilRun(EmberTaskControl *task, uint32_t now)
+static uint32_t emTaskMsUntilRun(EmberTaskControl *task, uint64_t now)
 {
-  if (timeGTorEqualInt32u(now, task->nextEventTime)) {
+  if (timeGTorEqualInt64u(now, task->nextEventTime)) {
     return 0;
   } else {
-    return elapsedTimeInt32u(now, task->nextEventTime);
+    return elapsedTimeInt64u(now, task->nextEventTime);
   }
 }
 
 static void emTaskDetermineNextEvent(EmberTaskControl *task)
 {
-  uint32_t now = halCommonGetInt32uMillisecondTick();
+  uint64_t now = halCommonGetInt64uMillisecondTick();
   ATOMIC(
     // We must use (HALF_MAX_INT32U_VALUE-1) as the max, or else later calls
     //  to determine if now >= nextEventTime will not work properly.
@@ -131,7 +131,7 @@ static void emTaskDetermineNextEvent(EmberTaskControl *task)
    uint32_t emberTaskMsUntilRun(EmberTaskId taskid)
    {
    EmberTaskControl *task = &(emTasks[taskid]);
-   uint32_t now = halCommonGetInt32uMillisecondTick();
+   uint64_t now = halCommonGetInt64uMillisecondTick();
 
    return emTaskMsUntilRun(task, now);
    }
@@ -143,7 +143,7 @@ static void emTaskDetermineNextEvent(EmberTaskControl *task)
 uint32_t emberMsToNextEventExtended(EmberEventData *events, uint32_t maxMs, uint8_t* returnIndex)
 {
   EmberEventData *nextEvent;
-  uint32_t nowMS32 = halCommonGetInt32uMillisecondTick();
+  uint64_t nowMS64 = halCommonGetInt64uMillisecondTick();
   uint8_t index = 0;
   if (returnIndex != NULL) {
     *returnIndex = 0xFF;
@@ -158,13 +158,18 @@ uint32_t emberMsToNextEventExtended(EmberEventData *events, uint32_t maxMs, uint
 
     if (control->status != EMBER_EVENT_INACTIVE) {
       if (control->status == EMBER_EVENT_ZERO_DELAY
-          || timeGTorEqualInt32u(nowMS32, control->timeToExecute)) {
+          || timeGTorEqualInt64u(nowMS64, control->timeToExecute)) {
         if (returnIndex != NULL) {
           *returnIndex = index;
         }
         return 0;
       } else {
-        uint32_t duration = elapsedTimeInt32u(nowMS32, control->timeToExecute);
+        uint32_t duration = elapsedTimeInt64u(nowMS64, control->timeToExecute);
+        // if (duration > 10000)
+        // {
+        //   control->timeToExecute = nowMS32;
+        //   duration = elapsedTimeInt32u(nowMS32, control->timeToExecute);
+        // }
         if (duration < maxMs) {
           maxMs = duration;
           if (returnIndex != NULL) {
@@ -187,7 +192,7 @@ uint32_t emberMsToNextEvent(EmberEventData *events, uint32_t maxMs)
 void emberRunEvents(EmberEventData *events)
 {
   EmberEventData *nextEvent;
-  uint32_t nowMS32 = halCommonGetInt32uMillisecondTick();
+  uint64_t nowMS64 = halCommonGetInt64uMillisecondTick();
 
   nextEvent = events;
   while (true) {
@@ -198,7 +203,7 @@ void emberRunEvents(EmberEventData *events)
 
     if (control->status != EMBER_EVENT_INACTIVE) {
       if (control->status == EMBER_EVENT_ZERO_DELAY
-          || timeGTorEqualInt32u(nowMS32, control->timeToExecute)) {
+          || timeGTorEqualInt64u(nowMS64, control->timeToExecute)) {
         PRINT_EVENT(control, "running");
         control->status = EMBER_EVENT_ZERO_DELAY;
         ((void (*)(EmberEventControl *))(nextEvent->handler))(control);
@@ -218,9 +223,9 @@ void emberRunTask(EmberTaskId taskid)
 void emberRunTask(EmberTaskId taskid)
 {
   EmberTaskControl *task = &(emTasks[taskid]);
-  uint32_t now = halCommonGetInt32uMillisecondTick();
+  uint64_t now = halCommonGetInt64uMillisecondTick();
 
-  if (timeGTorEqualInt32u(now, task->nextEventTime)) {
+  if (timeGTorEqualInt64u(now, task->nextEventTime)) {
     emberRunEvents(task->events);
     // now that we've gone through and run all the events, we need to
     //  recalculate when the next one is going to occur.
@@ -279,7 +284,7 @@ bool emberMarkTaskIdle(EmberTaskId taskid)
 {
   EmberTaskControl *task = &(emTasks[taskid]);
   EmberTaskId id;
-  uint32_t now;
+  uint64_t now;
   uint32_t msToNextEvent = MAX_INT32U_VALUE;
 
   // Mark the current task as no longer busy
@@ -296,7 +301,7 @@ bool emberMarkTaskIdle(EmberTaskId taskid)
   //  processor will not actually idle.
   assert(INTERRUPTS_ARE_OFF());
 
-  now = halCommonGetInt32uMillisecondTick();
+  now = halCommonGetInt64uMillisecondTick();
 
   // Walk all tasks to find out if they have anything to do
   for (id = 0; id < emActiveTaskCount; id++) {

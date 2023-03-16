@@ -413,13 +413,13 @@ void echoCommand(void)
 void printEvents(void)
 {
   uint8_t i = 0;
-  uint32_t nowMS32 = halCommonGetInt32uMillisecondTick();
+  uint64_t nowMS64 = halCommonGetInt64uMillisecondTick();
   while (emAfEvents[i].control != NULL) {
     emberAfCorePrint("%p  : ", emAfEventStrings[i]);
     if (emAfEvents[i].control->status == EMBER_EVENT_INACTIVE) {
       emberAfCorePrintln("inactive");
     } else {
-      emberAfCorePrintln("%l ms", emAfEvents[i].control->timeToExecute - nowMS32);
+      emberAfCorePrintln("%l ms", emAfEvents[i].control->timeToExecute - nowMS64);
     }
     i++;
   }

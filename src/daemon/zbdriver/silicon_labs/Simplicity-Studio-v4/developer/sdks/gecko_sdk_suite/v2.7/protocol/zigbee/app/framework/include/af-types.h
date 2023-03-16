@@ -1874,7 +1874,7 @@ typedef struct {
 
 typedef struct {
   EmberNodeId emberNodeId;
-  uint32_t timeStamp;
+  uint64_t timeStamp;
 } EmberAfJoiningDevice;
 
 #define EMBER_AF_INVALID_CLUSTER_ID 0xFFFF

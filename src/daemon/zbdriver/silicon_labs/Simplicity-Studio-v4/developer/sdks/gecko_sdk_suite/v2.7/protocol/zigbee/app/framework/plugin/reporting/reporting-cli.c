@@ -113,7 +113,7 @@ void emAfPluginReportingCliClearLastReportTime(void)
 {
   uint8_t i;
   for (i = 0; i < REPORT_TABLE_SIZE; i++) {
-    emAfPluginReportVolatileData[i].lastReportTimeMs = halCommonGetInt32uMillisecondTick();
+    emAfPluginReportVolatileData[i].lastReportTimeMs = halCommonGetInt64uMillisecondTick();
   }
   emberAfReportingPrintln("clearing last report time of all attributes");
 }

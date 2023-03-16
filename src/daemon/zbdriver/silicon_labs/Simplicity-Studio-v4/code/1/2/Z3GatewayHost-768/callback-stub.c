@@ -2682,4 +2682,5 @@ bool emberAfWriteAttributesResponseCallback(EmberAfClusterId clusterId,
 void emberAfZigbeeKeyEstablishmentCallback(EmberEUI64 partner,
                                            EmberKeyStatus status)
 {
+  printf("EmberKeyStatus: %02x\n", status);
 }

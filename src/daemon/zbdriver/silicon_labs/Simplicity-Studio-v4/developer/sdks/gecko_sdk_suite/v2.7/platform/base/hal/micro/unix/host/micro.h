@@ -46,7 +46,7 @@
 
 void setMicroRebootHandler(void (*handler)(void));
 
-// the number of ticks (as returned from halCommonGetInt32uMillisecondTick)
+// the number of ticks (as returned from halCommonGetInt64uMillisecondTick)
 // that represent an actual second. This can vary on different platforms.
 #define MILLISECOND_TICKS_PER_SECOND 1000UL
 
